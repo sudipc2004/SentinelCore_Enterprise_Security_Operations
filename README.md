@@ -1,17 +1,16 @@
 # Sentinel Core Security Platform
 
-Sentinel Core is a full-stack security operations platform for managing operators, teams, authentication events, and audit activity. The project is split into a Spring Boot backend and a Vite React frontend.
+Sentinel Core is a full-stack security platform foundation for authentication, role-based access, user administration, team administration, and local development services.
 
+v1.0.0.0 Sprint 1
 ## Features
 
 - JWT-based authentication and protected routes
 - Role-based access control for `ADMIN`, `ANALYST`, and `VIEWER`
-- Operator registration, login, logout, and profile management
+- Operator registration, login, logout, and token persistence
 - User directory with search, filters, pagination, status updates, and admin CRUD actions
 - Team management with team leads, members, search, and admin CRUD actions
-- Dashboard metrics for users, teams, recent registrations, and login activity
-- Audit logs for admin and analyst review
-- MongoDB persistence
+- MongoDB persistence for internal authentication and administration logs
 
 ## Tech Stack
 
@@ -33,6 +32,14 @@ Frontend:
 - Tailwind CSS 4
 - Lucide React icons
 - Oxlint
+
+## Sprint 1 Scope
+
+- Spring Boot backend foundation with JWT authentication and RBAC
+- React/Vite frontend with Tailwind, React Router, login/register pages, and protected routes
+- User management CRUD UI and REST endpoints
+- Team management CRUD UI and REST endpoints
+- MongoDB logging persistence for authentication and administration events
 
 ## Project Structure
 
@@ -59,8 +66,10 @@ mongodb://localhost:27017/sentinelcore
 From the project root:
 
 ```powershell
+
 cd backend
 .\gradlew.bat bootRun
+
 ```
 
 If PowerShell blocks the Gradle wrapper, run:
@@ -142,11 +151,7 @@ Authentication:
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 - `POST /api/auth/logout`
-- `GET /api/auth/profile`
-
-Dashboard:
-
-- `GET /api/dashboard/stats`
+- `GET /api/auth/profile` for session restoration
 
 Users:
 
@@ -165,10 +170,6 @@ Teams:
 - `PUT /api/teams/{id}`
 - `DELETE /api/teams/{id}`
 
-Audit Logs:
-
-- `GET /api/audit-logs`
-
 Authenticated requests should include:
 
 ```text
@@ -180,20 +181,15 @@ Authorization: Bearer <jwt-token>
 `ADMIN`
 
 - Full user and team management
-- Dashboard access
-- Audit log access
 
 `ANALYST`
 
 - View users and teams
-- Update permitted user/profile data
-- Dashboard access
-- Audit log access
+- Update permitted user data
 
 `VIEWER`
 
 - View users and teams
-- Dashboard access
 
 ## Useful Commands
 
@@ -208,11 +204,13 @@ cd backend
 Frontend:
 
 ```powershell
+
 cd frontend
 npm install
 npm.cmd run dev
 npm.cmd run build
 npm.cmd run lint
+
 ```
 
 ## Notes

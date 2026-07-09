@@ -112,20 +112,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const updateProfile = async (updatedData) => {
-    setError(null);
-    try {
-      const response = await axios.put(`/api/users/${user.id}`, updatedData);
-      // If we are updating ourselves, update user state
-      setUser(response.data);
-      return response.data;
-    } catch (err) {
-      const errMsg = err.response?.data?.message || 'Profile update failed';
-      setError(errMsg);
-      throw new Error(errMsg);
-    }
-  };
-
   const value = {
     user,
     token,
@@ -134,7 +120,6 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
-    updateProfile,
     isAuthenticated: !!user,
   };
 

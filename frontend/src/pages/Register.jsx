@@ -79,7 +79,7 @@ export default function Register() {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="John Doe"
+              placeholder="Your Full Name"
               className="w-full pl-10 pr-4 py-2.5 rounded-lg glass-input text-sm"
               disabled={loading}
             />
@@ -94,7 +94,7 @@ export default function Register() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="user@sentinelcore.io"
+              placeholder="user@sentinelcore.in"
               className="w-full pl-10 pr-4 py-2.5 rounded-lg glass-input text-sm"
               disabled={loading}
             />
@@ -126,9 +126,9 @@ export default function Register() {
               className="w-full pl-10 pr-4 py-2.5 rounded-lg glass-input text-sm appearance-none cursor-pointer bg-slate-950 text-white"
               disabled={loading}
             >
-              <option value="VIEWER">VIEWER (Read-only)</option>
-              <option value="ANALYST">ANALYST (Read-write own)</option>
-              <option value="ADMIN">ADMIN (Full privileges)</option>
+              <option value="VIEWER">VIEWER</option>
+              <option value="ANALYST">ANALYST</option>
+              <option value="ADMIN">ADMIN</option>
             </select>
           </div>
         </div>

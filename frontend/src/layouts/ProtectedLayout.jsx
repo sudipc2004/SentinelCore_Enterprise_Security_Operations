@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Shield, LayoutDashboard, Users, Network, History, User, LogOut, Terminal } from 'lucide-react';
+import { Shield, Users, Network, LogOut, Terminal } from 'lucide-react';
 
 export default function ProtectedLayout({ children }) {
   const { user, loading, logout } = useAuth();
@@ -26,20 +26,10 @@ export default function ProtectedLayout({ children }) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  const role = user.role;
-
   const menuItems = [
-    { name: 'Dashboard', path: '/', icon: LayoutDashboard },
     { name: 'User Management', path: '/users', icon: Users },
     { name: 'Team Management', path: '/teams', icon: Network },
   ];
-
-  // Only show Audit Logs for Admin and Analyst
-  if (role === 'ADMIN' || role === 'ANALYST') {
-    menuItems.push({ name: 'Audit Logs', path: '/audit-logs', icon: History });
-  }
-
-  menuItems.push({ name: 'My Profile', path: '/profile', icon: User });
 
   return (
     <div className="min-h-screen bg-dark-bg text-gray-200 flex">
