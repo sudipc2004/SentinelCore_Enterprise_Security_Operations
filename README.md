@@ -1,7 +1,8 @@
 # Sentinel Core Security Platform
 
-Sentinel Core is a Sprint 1 full-stack security platform foundation for authentication, role-based access, user administration, team administration, and local development services.
+Sentinel Core is a full-stack security platform foundation for authentication, role-based access, user administration, team administration, and local development services.
 
+v1.0.0.0 Sprint 1
 ## Features
 
 - JWT-based authentication and protected routes
