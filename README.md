@@ -46,7 +46,7 @@ Sentinel_Core_Security_Platform/
 
 - Java 22
 - Node.js and npm
-- MongoDB running locally
+- MongoDB Compass running locally
 
 The backend expects MongoDB at:
 
