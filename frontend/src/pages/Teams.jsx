@@ -159,87 +159,78 @@ export default function Teams() {
   const activeTeam = teams.find(t => t.id === activeTeamId);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 sc-fade-in">
+      <div className="sc-panel flex flex-col gap-4 p-6 xl:flex-row xl:items-center xl:justify-between">
         <div>
-          <h1 className="text-3xl font-extrabold text-white tracking-wide">Teams</h1>
-          <p className="text-sm text-gray-400 mt-1 font-mono">Create teams, assign leads, and manage members</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="sc-badge border-sky-500/20 bg-sky-500/10 text-sky-300">Team operations</span>
+            <span className="sc-badge border-white/10 bg-white/5 text-slate-300">Collaborative access</span>
+          </div>
+          <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Teams</h1>
+          <p className="mt-2 max-w-3xl text-sm text-slate-400">Create teams, assign leads, and manage members using the same enterprise styling as the rest of the platform.</p>
         </div>
         {isAdmin && (
-          <button
-            onClick={handleOpenAddModal}
-            className="flex items-center space-x-2 bg-primary text-black font-semibold text-sm px-4 py-2.5 rounded-lg hover:bg-primary-hover transition shadow-md shadow-primary/10 cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
+          <button onClick={handleOpenAddModal} className="sc-button-primary px-4 py-3 text-sm font-semibold">
+            <Plus className="h-4 w-4" />
             <span>Create Team</span>
           </button>
         )}
       </div>
 
-      {/* Search Toolbar */}
-      <div className="glass-card p-6 border border-dark-border">
-        <form onSubmit={handleSearchSubmit} className="flex gap-4">
+      <div className="sc-panel p-6">
+        <form onSubmit={handleSearchSubmit} className="flex flex-col gap-4 lg:flex-row">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-3 w-4 h-4 text-gray-500" />
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
             <input
               type="text"
               placeholder="Search teams by name..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-lg glass-input text-xs"
+              className="glass-input w-full px-4 py-3 pl-11 text-sm"
             />
           </div>
-          <button
-            type="submit"
-            className="bg-slate-800 text-white border border-dark-border hover:bg-slate-700 text-xs py-2 px-6 rounded-lg transition font-mono uppercase tracking-wider cursor-pointer"
-          >
+          <button type="submit" className="sc-button-secondary px-6 py-3 text-xs font-semibold uppercase tracking-[0.24em]">
             Query
           </button>
         </form>
       </div>
 
-      {/* Main Grid: Team list on left, details on right */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        
-        {/* Left Column: Team Cards */}
-        <div className="lg:col-span-1 space-y-4">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+        <div className="space-y-4 xl:col-span-1">
           {loading ? (
-            <div className="glass-card p-12 text-center border border-dark-border">
-              <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-2"></div>
-              <p className="text-xs font-mono text-gray-500">Syncing teams...</p>
+            <div className="sc-panel p-12 text-center">
+              <div className="mx-auto mb-3 h-6 w-6 animate-spin rounded-full border-2 border-primary/20 border-t-primary"></div>
+              <p className="text-xs font-mono text-slate-500">Syncing teams...</p>
             </div>
           ) : error ? (
-            <div className="glass-card p-8 text-center border border-red-500/25 bg-red-500/10">
-              <AlertTriangle className="w-6 h-6 text-red-400 mx-auto mb-2" />
-              <p className="text-xs font-mono text-red-300">{error}</p>
+            <div className="sc-panel border border-red-500/25 bg-red-500/10 p-8 text-center">
+              <AlertTriangle className="mx-auto mb-2 h-6 w-6 text-red-300" />
+              <p className="text-xs font-mono text-red-200">{error}</p>
             </div>
           ) : teams.length === 0 ? (
-            <div className="glass-card p-8 text-center border border-dark-border">
-              <AlertTriangle className="w-6 h-6 text-yellow-500 mx-auto mb-2" />
-              <p className="text-xs font-mono text-gray-400">No operational teams found.</p>
+            <div className="sc-panel p-8 text-center">
+              <AlertTriangle className="mx-auto mb-2 h-6 w-6 text-amber-300" />
+              <p className="text-xs font-mono text-slate-400">No operational teams found.</p>
             </div>
           ) : (
             teams.map((t) => (
               <div
                 key={t.id}
                 onClick={() => setActiveTeamId(t.id)}
-                className={`p-5 rounded-lg border transition-all duration-150 cursor-pointer ${
+                className={`cursor-pointer rounded-2xl border p-5 transition duration-200 hover:-translate-y-0.5 ${
                   activeTeamId === t.id
-                    ? 'bg-primary/5 border-primary/45 shadow-md shadow-primary/5'
-                    : 'glass-card hover:bg-slate-900/10 border-dark-border'
+                    ? 'border-sky-400/30 bg-sky-500/8 shadow-[0_12px_30px_rgba(37,99,235,0.18)]'
+                    : 'border-white/8 bg-[#161b22]/90 hover:border-sky-400/20 hover:bg-white/5'
                 }`}
               >
-                <div className="flex justify-between items-start">
-                  <h3 className="text-sm font-bold text-white tracking-wide truncate">{t.teamName}</h3>
-                  <span className="text-[9px] bg-slate-800 border border-dark-border text-gray-400 font-mono px-2 py-0.5 rounded">
-                    {t.department}
-                  </span>
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="truncate text-sm font-bold tracking-wide text-white">{t.teamName}</h3>
+                  <span className="sc-badge border-white/10 bg-white/5 text-slate-300">{t.department}</span>
                 </div>
-                <p className="text-xs text-gray-400 mt-2 line-clamp-2 leading-relaxed">{t.description || 'No description provided'}</p>
-                <div className="flex justify-between items-center text-[10px] text-gray-500 font-mono mt-4 pt-3 border-t border-dark-border/20">
+                <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-slate-400">{t.description || 'No description provided'}</p>
+                <div className="mt-4 flex items-center justify-between border-t border-white/8 pt-3 text-[10px] font-mono text-slate-500">
                   <span className="flex items-center">
-                    <Users className="w-3.5 h-3.5 mr-1 text-gray-400" />
+                    <Users className="mr-1 h-3.5 w-3.5 text-slate-400" />
                     {t.members?.length || 0} Members
                   </span>
                   <span>Lead: {t.teamLead?.name || 'Unassigned'}</span>
@@ -249,29 +240,22 @@ export default function Teams() {
           )}
         </div>
 
-        {/* Right Column: Active Team Details */}
-        <div className="lg:col-span-2">
+        <div className="xl:col-span-2">
           {activeTeam ? (
-            <div className="glass-card border border-dark-border p-6 space-y-6">
-              <div className="flex justify-between items-start border-b border-dark-border pb-4">
+            <div className="sc-panel space-y-6 p-6">
+              <div className="flex flex-col gap-4 border-b border-white/8 pb-4 lg:flex-row lg:items-start lg:justify-between">
                 <div>
-                  <h2 className="text-xl font-bold text-white tracking-wide">{activeTeam.teamName}</h2>
-                  <p className="text-xs text-gray-400 font-mono mt-1">Department: <span className="text-gray-200">{activeTeam.department}</span></p>
+                  <h2 className="text-2xl font-bold tracking-tight text-white">{activeTeam.teamName}</h2>
+                  <p className="mt-1 text-xs font-mono text-slate-400">Department: <span className="text-slate-200">{activeTeam.department}</span></p>
                 </div>
                 {isAdmin && (
-                  <div className="space-x-2">
-                    <button
-                      onClick={() => handleOpenEditModal(activeTeam)}
-                      className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded bg-slate-800 text-gray-300 border border-dark-border hover:bg-slate-700 hover:text-white text-xs font-mono transition cursor-pointer"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
+                  <div className="flex gap-2">
+                    <button onClick={() => handleOpenEditModal(activeTeam)} className="sc-button-secondary px-3 py-2 text-xs font-semibold">
+                      <Edit2 className="h-3.5 w-3.5" />
                       <span>Edit</span>
                     </button>
-                    <button
-                      onClick={() => setTeamToDelete(activeTeam)}
-                      className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 text-xs font-mono transition cursor-pointer"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
+                    <button onClick={() => setTeamToDelete(activeTeam)} className="sc-button-danger px-3 py-2 text-xs font-semibold">
+                      <Trash2 className="h-3.5 w-3.5" />
                       <span>Delete</span>
                     </button>
                   </div>
@@ -279,120 +263,113 @@ export default function Teams() {
               </div>
 
               <div>
-                <h4 className="text-xs font-mono uppercase tracking-wider text-gray-400 mb-2">Description</h4>
-                <p className="text-xs text-gray-300 bg-slate-900/30 border border-dark-border/40 p-3 rounded-lg leading-relaxed">
+                <h4 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Description</h4>
+                <p className="rounded-2xl border border-white/8 bg-[#0b1220]/60 p-4 text-xs leading-relaxed text-slate-300">
                   {activeTeam.description || 'No description details logged.'}
                 </p>
               </div>
 
-              {/* Team Lead Info */}
               <div>
-                <h4 className="text-xs font-mono uppercase tracking-wider text-gray-400 mb-3">Team Lead</h4>
+                <h4 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Team Lead</h4>
                 {activeTeam.teamLead ? (
-                  <div className="flex items-center space-x-3 p-3 bg-slate-900/30 border border-dark-border rounded-lg max-w-sm">
-                    <div className="w-9 h-9 rounded-full bg-secondary/15 border border-secondary/25 flex items-center justify-center font-bold text-secondary text-sm">
+                  <div className="flex max-w-sm items-center space-x-3 rounded-2xl border border-white/8 bg-white/5 p-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-2xl border border-sky-500/20 bg-sky-500/10 text-sm font-bold text-sky-300">
                       {activeTeam.teamLead.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
                       <p className="text-xs font-semibold text-white">{activeTeam.teamLead.name}</p>
-                      <p className="text-[10px] text-gray-400 font-mono">{activeTeam.teamLead.email}</p>
+                      <p className="text-[10px] font-mono text-slate-400">{activeTeam.teamLead.email}</p>
                     </div>
                   </div>
                 ) : (
-                  <p className="text-xs text-gray-500 font-mono italic">No team lead assigned.</p>
+                  <p className="text-xs italic text-slate-500 font-mono">No team lead assigned.</p>
                 )}
               </div>
 
-              {/* Members List */}
               <div>
-                <h4 className="text-xs font-mono uppercase tracking-wider text-gray-400 mb-3">Members ({activeTeam.members?.length || 0})</h4>
+                <h4 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Members ({activeTeam.members?.length || 0})</h4>
                 {activeTeam.members && activeTeam.members.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     {activeTeam.members.map((member) => (
-                      <div key={member.id} className="flex items-center space-x-3 p-3 bg-slate-900/35 border border-dark-border/60 rounded-lg">
-                        <div className="w-8 h-8 rounded-full bg-slate-800 border border-dark-border flex items-center justify-center font-bold text-gray-400 text-xs">
+                      <div key={member.id} className="flex items-center space-x-3 rounded-2xl border border-white/8 bg-white/5 p-3">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full border border-white/8 bg-[#0b1220] text-xs font-bold text-slate-300">
                           {member.name.charAt(0).toUpperCase()}
                         </div>
                         <div className="overflow-hidden">
-                          <p className="text-xs font-semibold text-white truncate">{member.name}</p>
-                          <p className="text-[9px] text-gray-400 font-mono truncate">{member.email}</p>
+                          <p className="truncate text-xs font-semibold text-white">{member.name}</p>
+                          <p className="truncate text-[9px] font-mono text-slate-400">{member.email}</p>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-gray-500 font-mono italic">No members are assigned to this team.</p>
+                  <p className="text-xs italic text-slate-500 font-mono">No members are assigned to this team.</p>
                 )}
               </div>
             </div>
           ) : (
-            <div className="glass-card border border-dark-border p-12 text-center">
-              <Info className="w-8 h-8 text-gray-500 mx-auto mb-3" />
-              <p className="text-sm font-mono text-gray-400">Select a team card to retrieve operational profiles.</p>
+            <div className="sc-panel p-12 text-center">
+              <Info className="mx-auto mb-3 h-8 w-8 text-slate-500" />
+              <p className="text-sm font-mono text-slate-400">Select a team card to retrieve operational profiles.</p>
             </div>
           )}
         </div>
-
       </div>
 
-      {/* Edit / Add Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-lg glass-card p-6 border border-dark-border relative animate-scale-up max-h-[90vh] overflow-y-auto">
-            <button
-              onClick={() => setIsModalOpen(false)}
-              className="absolute right-4 top-4 text-gray-400 hover:text-white transition cursor-pointer"
-            >
-              <X className="w-5 h-5" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="sc-modal sc-scale-in relative max-h-[90vh] w-full max-w-lg overflow-y-auto p-6">
+            <button onClick={() => setIsModalOpen(false)} className="absolute right-4 top-4 text-slate-400 transition hover:text-white">
+              <X className="h-5 w-5" />
             </button>
-            <h3 className="text-lg font-bold text-white mb-4 flex items-center space-x-2">
-              <Network className="w-5 h-5 text-primary" />
+            <h3 className="mb-4 flex items-center space-x-2 text-lg font-bold text-white">
+              <Network className="h-5 w-5 text-sky-300" />
               <span>{modalType === 'ADD' ? 'Create Team' : 'Edit Team'}</span>
             </h3>
 
             <form onSubmit={handleFormSubmit} className="space-y-4">
               {formError && (
-                <div className="p-2.5 bg-red-500/10 border border-red-500/25 text-red-400 rounded-lg text-xs flex items-center space-x-2">
-                  <AlertTriangle className="w-4 h-4" />
+                <div className="flex items-center space-x-2 rounded-2xl border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-300">
+                  <AlertTriangle className="h-4 w-4" />
                   <span>{formError}</span>
                 </div>
               )}
               {formSuccess && (
-                <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 rounded-lg text-xs flex items-center space-x-2">
-                  <Check className="w-4 h-4" />
+                <div className="flex items-center space-x-2 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs text-emerald-300">
+                  <Check className="h-4 w-4" />
                   <span>{formSuccess}</span>
                 </div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
-                  <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-1">Team Name</label>
+                  <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">Team Name</label>
                   <input
                     type="text"
                     value={formData.teamName}
                     onChange={(e) => setFormData({ ...formData, teamName: e.target.value })}
                     placeholder="Red Team Alpha"
-                    className="w-full px-3 py-2 rounded-lg glass-input text-xs"
+                    className="glass-input w-full px-4 py-3 text-xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-1">Department</label>
+                  <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">Department</label>
                   <input
                     type="text"
                     value={formData.department}
                     onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                     placeholder="Cyber Intel"
-                    className="w-full px-3 py-2 rounded-lg glass-input text-xs"
+                    className="glass-input w-full px-4 py-3 text-xs"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-1">Assign Team Lead</label>
+                <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">Assign Team Lead</label>
                 <select
                   value={formData.teamLead}
                   onChange={(e) => setFormData({ ...formData, teamLead: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg glass-input text-xs bg-slate-900 text-white cursor-pointer"
+                  className="glass-input w-full cursor-pointer bg-[#0b1220] px-4 py-3 text-xs text-white"
                 >
                   <option value="">Select Team Lead</option>
                   {usersList.map(u => (
@@ -402,50 +379,42 @@ export default function Teams() {
               </div>
 
               <div>
-                <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-1">Description</label>
+                <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">Description</label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Team purpose and notes..."
                   rows="3"
-                  className="w-full px-3 py-2 rounded-lg glass-input text-xs"
+                  className="glass-input w-full px-4 py-3 text-xs"
                 />
               </div>
 
-              {/* Members Selection checkboxes */}
               <div>
-                <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-2">Team Members</label>
-                <div className="h-44 overflow-y-auto border border-dark-border bg-slate-950/40 p-3 rounded-lg space-y-2">
+                <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">Team Members</label>
+                <div className="h-44 space-y-2 overflow-y-auto rounded-2xl border border-white/8 bg-[#0b1220]/60 p-3">
                   {usersList.length === 0 ? (
-                    <p className="text-[10px] text-gray-500 font-mono italic">No users available.</p>
+                    <p className="text-[10px] italic text-slate-500 font-mono">No users available.</p>
                   ) : (
                     usersList.map((usr) => (
-                      <label key={usr.id} className="flex items-center space-x-2.5 text-xs text-gray-300 hover:text-white cursor-pointer select-none">
+                      <label key={usr.id} className="flex cursor-pointer select-none items-center space-x-2.5 text-xs text-slate-300 transition hover:text-white">
                         <input
                           type="checkbox"
                           checked={formData.members.includes(usr.id)}
                           onChange={() => handleMemberCheckboxChange(usr.id)}
-                          className="rounded border-gray-600 bg-slate-800 text-primary focus:ring-primary w-3.5 h-3.5"
+                          className="h-3.5 w-3.5 rounded border-slate-600 bg-slate-800 text-primary focus:ring-primary"
                         />
-                        <span className="truncate">{usr.name} <span className="text-[9px] text-gray-500 font-mono">({usr.department || 'No Dept'} - {usr.role})</span></span>
+                        <span className="truncate">{usr.name} <span className="text-[9px] font-mono text-slate-500">({usr.department || 'No Dept'} - {usr.role})</span></span>
                       </label>
                     ))
                   )}
                 </div>
               </div>
 
-              <div className="flex space-x-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="flex-1 py-2 text-xs font-mono bg-slate-800 text-gray-400 border border-dark-border hover:bg-slate-700 hover:text-white rounded-lg transition uppercase tracking-wider cursor-pointer"
-                >
+              <div className="flex gap-2 pt-2">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="sc-button-secondary flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.24em]">
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  className="flex-1 py-2 text-xs font-mono bg-primary text-black font-bold rounded-lg hover:bg-primary-hover transition uppercase tracking-wider cursor-pointer"
-                >
+                <button type="submit" className="sc-button-primary flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.24em]">
                   Save Team
                 </button>
               </div>
@@ -454,27 +423,20 @@ export default function Teams() {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
       {teamToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-sm glass-card p-6 border border-dark-border relative animate-scale-up">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="sc-modal sc-scale-in w-full max-w-sm p-6">
             <div className="text-center">
-              <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-              <h3 className="text-lg font-bold text-white mb-2">Delete Team?</h3>
-              <p className="text-xs text-gray-400 mb-6 font-mono leading-relaxed">
-                Confirm deletion of team <span className="text-white font-semibold">{teamToDelete.teamName}</span>. This removes members immediately. Action is irreversible.
+              <AlertTriangle className="mx-auto mb-4 h-12 w-12 text-red-300" />
+              <h3 className="mb-2 text-lg font-bold text-white">Delete Team?</h3>
+              <p className="mb-6 text-xs leading-relaxed text-slate-400 font-mono">
+                Confirm deletion of team <span className="font-semibold text-white">{teamToDelete.teamName}</span>. This removes members immediately. Action is irreversible.
               </p>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => setTeamToDelete(null)}
-                  className="flex-1 py-2 text-xs font-mono uppercase bg-slate-800 text-gray-400 border border-dark-border hover:bg-slate-700 hover:text-white rounded-lg transition cursor-pointer"
-                >
+              <div className="flex gap-2">
+                <button onClick={() => setTeamToDelete(null)} className="sc-button-secondary flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.24em]">
                   Cancel
                 </button>
-                <button
-                  onClick={handleDeleteTeam}
-                  className="flex-1 py-2 text-xs font-mono uppercase bg-red-600 text-white font-bold rounded-lg hover:bg-red-500 transition cursor-pointer"
-                >
+                <button onClick={handleDeleteTeam} className="sc-button-danger flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.24em]">
                   Delete
                 </button>
               </div>

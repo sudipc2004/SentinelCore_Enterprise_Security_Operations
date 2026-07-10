@@ -167,46 +167,45 @@ export default function Users() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 sc-fade-in">
+      <div className="sc-panel flex flex-col gap-4 p-6 xl:flex-row xl:items-center xl:justify-between">
         <div>
-          <h1 className="text-3xl font-extrabold text-white tracking-wide">User Directory</h1>
-          <p className="text-sm text-gray-400 mt-1 font-mono">Manage users, roles, status, and departments</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="sc-badge border-sky-500/20 bg-sky-500/10 text-sky-300">User directory</span>
+            <span className="sc-badge border-white/10 bg-white/5 text-slate-300">RBAC managed</span>
+          </div>
+          <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">User Management</h1>
+          <p className="mt-2 max-w-3xl text-sm text-slate-400">Manage users, roles, status, and departments without changing the underlying workflow.</p>
         </div>
         {isAdmin && (
-          <button
-            onClick={handleOpenAddModal}
-            className="flex items-center space-x-2 bg-primary text-black font-semibold text-sm px-4 py-2.5 rounded-lg hover:bg-primary-hover transition shadow-md shadow-primary/10 cursor-pointer"
-          >
-            <UserPlus className="w-4 h-4" />
+          <button onClick={handleOpenAddModal} className="sc-button-primary px-4 py-3 text-sm font-semibold">
+            <UserPlus className="h-4 w-4" />
             <span>Add User</span>
           </button>
         )}
       </div>
 
-      {/* Filters Panel */}
-      <div className="glass-card p-6 border border-dark-border">
-        <form onSubmit={handleSearchSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+      <div className="sc-panel p-6">
+        <form onSubmit={handleSearchSubmit} className="grid grid-cols-1 gap-4 md:grid-cols-4 md:items-end">
           <div>
-            <label className="block text-xs font-mono uppercase tracking-wider text-gray-400 mb-2">Search Users</label>
+            <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Search users</label>
             <div className="relative">
-              <Search className="absolute left-3 top-3 w-4 h-4 text-gray-500" />
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
               <input
                 type="text"
                 placeholder="Name or email..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-lg glass-input text-xs"
+                className="glass-input w-full px-4 py-3 pl-11 text-sm"
               />
             </div>
           </div>
           <div>
-            <label className="block text-xs font-mono uppercase tracking-wider text-gray-400 mb-2">Access Role</label>
+            <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Access role</label>
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg glass-input text-xs bg-slate-900 text-white cursor-pointer"
+              className="glass-input w-full cursor-pointer bg-[#0b1220] px-4 py-3 text-sm text-white"
             >
               <option value="">All Roles</option>
               <option value="ADMIN">ADMIN</option>
@@ -215,116 +214,98 @@ export default function Users() {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-mono uppercase tracking-wider text-gray-400 mb-2">Department</label>
+            <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Department</label>
             <input
               type="text"
               placeholder="e.g. Operations"
               value={deptFilter}
               onChange={(e) => setDeptFilter(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg glass-input text-xs"
+              className="glass-input w-full px-4 py-3 text-sm"
             />
           </div>
-          <div className="flex space-x-2">
-            <button
-              type="submit"
-              className="flex-1 bg-slate-800 text-white border border-dark-border hover:bg-slate-700 text-xs py-2 px-4 rounded-lg transition font-mono uppercase tracking-wider cursor-pointer"
-            >
+          <div className="flex gap-2">
+            <button type="submit" className="sc-button-secondary flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.22em]">
               Apply Filter
             </button>
-            <button
-              type="button"
-              onClick={handleResetFilters}
-              className="bg-red-500/10 text-red-400 hover:bg-red-500/20 text-xs py-2 px-3 rounded-lg transition font-mono uppercase tracking-wider cursor-pointer"
-            >
+            <button type="button" onClick={handleResetFilters} className="sc-button-danger px-4 py-3 text-xs font-semibold uppercase tracking-[0.22em]">
               Reset
             </button>
           </div>
         </form>
       </div>
 
-      {/* Directory Table */}
-      <div className="glass-card border border-dark-border overflow-hidden">
+      <div className="sc-table-shell overflow-hidden">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-24">
-            <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-4"></div>
-            <p className="text-xs font-mono text-gray-400">Syncing database directory...</p>
+            <div className="mb-4 h-8 w-8 animate-spin rounded-full border-2 border-primary/20 border-t-primary"></div>
+            <p className="text-xs font-mono text-slate-400">Syncing database directory...</p>
           </div>
         ) : users.length === 0 ? (
           <div className="py-16 text-center">
-            <AlertTriangle className="w-8 h-8 text-yellow-500 mx-auto mb-3" />
-            <p className="text-sm font-mono text-gray-400">No users match your search.</p>
+            <AlertTriangle className="mx-auto mb-3 h-8 w-8 text-amber-300" />
+            <p className="text-sm font-mono text-slate-400">No users match your search.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left">
               <thead>
-                <tr className="border-b border-dark-border bg-slate-900/35 text-[10px] uppercase font-mono tracking-wider text-gray-400">
-                  <th className="py-4 px-6">User Name</th>
-                  <th className="py-4 px-6">Role</th>
-                  <th className="py-4 px-6">Department</th>
-                  <th className="py-4 px-6">Status</th>
-                  <th className="py-4 px-6">Last Login</th>
-                  <th className="py-4 px-6 text-right">Actions</th>
+                <tr className="border-b border-white/8 text-[10px] uppercase tracking-[0.24em] text-slate-400">
+                  <th className="px-6 py-4">User Name</th>
+                  <th className="px-6 py-4">Role</th>
+                  <th className="px-6 py-4">Department</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4">Last Login</th>
+                  <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-dark-border/40 text-xs">
+              <tbody className="divide-y divide-white/8 text-xs">
                 {users.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-900/15 transition-colors duration-150">
-                    <td className="py-4 px-6">
+                  <tr key={item.id} className="transition hover:bg-white/5">
+                    <td className="px-6 py-4">
                       <div className="flex flex-col">
                         <span className="font-semibold text-white">{item.name}</span>
-                        <span className="text-[10px] text-gray-400 font-mono mt-0.5">{item.email}</span>
+                        <span className="mt-0.5 text-[10px] font-mono text-slate-400">{item.email}</span>
                       </div>
                     </td>
-                    <td className="py-4 px-6">
-                      <span className={`inline-block px-2.5 py-0.5 rounded font-mono text-[10px] font-bold ${
-                        item.role === 'ADMIN' 
-                          ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-bold font-mono tracking-[0.16em] ${
+                        item.role === 'ADMIN'
+                          ? 'border-red-500/20 bg-red-500/10 text-red-300'
                           : item.role === 'ANALYST'
-                          ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
-                          : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                          ? 'border-sky-500/20 bg-sky-500/10 text-sky-300'
+                          : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300'
                       }`}>
                         {item.role}
                       </span>
                     </td>
-                    <td className="py-4 px-6 text-gray-300 font-mono">{item.department}</td>
-                    <td className="py-4 px-6">
+                    <td className="px-6 py-4 font-mono text-slate-300">{item.department}</td>
+                    <td className="px-6 py-4">
                       <button
                         onClick={() => handleToggleStatus(item)}
                         disabled={!isAdmin}
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold font-mono border transition ${
+                        className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-bold font-mono tracking-[0.16em] transition ${
                           item.status === 'ACTIVE'
-                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20'
-                            : 'bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500/20'
-                        } ${!isAdmin ? 'cursor-default' : 'cursor-pointer'}`}
+                            ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20'
+                            : 'border-red-500/20 bg-red-500/10 text-red-300 hover:bg-red-500/20'
+                        } ${!isAdmin ? 'cursor-default opacity-70' : 'cursor-pointer'}`}
                       >
-                        <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${item.status === 'ACTIVE' ? 'bg-emerald-400' : 'bg-red-400'}`}></span>
+                        <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${item.status === 'ACTIVE' ? 'bg-emerald-400' : 'bg-red-400'}`}></span>
                         {item.status}
                       </button>
                     </td>
-                    <td className="py-4 px-6 text-gray-400 font-mono">
-                      {item.lastLogin ? new Date(item.lastLogin).toLocaleString() : 'NEVER'}
-                    </td>
-                    <td className="py-4 px-6 text-right space-x-2">
+                    <td className="px-6 py-4 font-mono text-slate-400">{item.lastLogin ? new Date(item.lastLogin).toLocaleString() : 'NEVER'}</td>
+                    <td className="px-6 py-4 text-right space-x-2">
                       {isAdmin ? (
                         <>
-                          <button
-                            onClick={() => handleOpenEditModal(item)}
-                            className="p-1.5 bg-slate-800 text-gray-400 border border-dark-border rounded hover:text-primary hover:border-primary/20 transition cursor-pointer inline-block"
-                            title="Edit User"
-                          >
-                            <Edit2 className="w-3.5 h-3.5" />
+                          <button onClick={() => handleOpenEditModal(item)} className="sc-button-secondary p-2" title="Edit User">
+                            <Edit2 className="h-3.5 w-3.5" />
                           </button>
-                          <button
-                            onClick={() => setUserToDelete(item)}
-                            className="p-1.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded hover:bg-red-500/20 transition cursor-pointer inline-block"
-                            title="Delete User"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
+                          <button onClick={() => setUserToDelete(item)} className="sc-button-danger p-2" title="Delete User">
+                            <Trash2 className="h-3.5 w-3.5" />
                           </button>
                         </>
                       ) : (
-                        <span className="text-[10px] font-mono text-gray-500 italic">Read-Only</span>
+                        <span className="text-[10px] font-mono italic text-slate-500">Read-Only</span>
                       )}
                     </td>
                   </tr>
@@ -334,99 +315,94 @@ export default function Users() {
           </div>
         )}
 
-        {/* Pagination Toolbar */}
         {!loading && totalPages > 0 && (
-          <div className="p-4 border-t border-dark-border/40 bg-slate-900/10 flex justify-between items-center text-xs font-mono text-gray-400">
+          <div className="flex flex-col gap-3 border-t border-white/8 bg-[#0b1220]/70 p-4 text-xs font-mono text-slate-400 sm:flex-row sm:items-center sm:justify-between">
             <span>Total Listings: {totalElements}</span>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center gap-4">
               <button
                 onClick={() => setPage(prev => Math.max(prev - 1, 0))}
                 disabled={page === 0}
-                className="p-1 rounded bg-slate-800 border border-dark-border hover:bg-slate-700 hover:text-white transition disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                className="sc-button-secondary p-2 disabled:pointer-events-none disabled:opacity-30"
               >
-                <ArrowLeft className="w-4 h-4" />
+                <ArrowLeft className="h-4 w-4" />
               </button>
               <span>Page {page + 1} of {totalPages}</span>
               <button
                 onClick={() => setPage(prev => Math.min(prev + 1, totalPages - 1))}
                 disabled={page === totalPages - 1}
-                className="p-1 rounded bg-slate-800 border border-dark-border hover:bg-slate-700 hover:text-white transition disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                className="sc-button-secondary p-2 disabled:pointer-events-none disabled:opacity-30"
               >
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="h-4 w-4" />
               </button>
             </div>
           </div>
         )}
       </div>
 
-      {/* Edit / Add Dialog Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-md glass-card p-6 border border-dark-border relative animate-scale-up">
-            <button
-              onClick={() => setIsModalOpen(false)}
-              className="absolute right-4 top-4 text-gray-400 hover:text-white transition cursor-pointer"
-            >
-              <X className="w-5 h-5" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="sc-modal sc-scale-in relative max-h-[90vh] w-full max-w-md overflow-y-auto p-6">
+            <button onClick={() => setIsModalOpen(false)} className="absolute right-4 top-4 text-slate-400 transition hover:text-white">
+              <X className="h-5 w-5" />
             </button>
-            <h3 className="text-lg font-bold text-white mb-4 flex items-center space-x-2">
-              <ShieldCheck className="w-5 h-5 text-primary" />
+            <h3 className="mb-4 flex items-center space-x-2 text-lg font-bold text-white">
+              <ShieldCheck className="h-5 w-5 text-sky-300" />
               <span>{modalType === 'ADD' ? 'Add User' : 'Edit User'}</span>
             </h3>
 
             <form onSubmit={handleFormSubmit} className="space-y-4">
               {formError && (
-                <div className="p-2.5 bg-red-500/10 border border-red-500/25 text-red-400 rounded-lg text-xs flex items-center space-x-2">
-                  <AlertTriangle className="w-4 h-4" />
+                <div className="flex items-center space-x-2 rounded-2xl border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-300">
+                  <AlertTriangle className="h-4 w-4" />
                   <span>{formError}</span>
                 </div>
               )}
               {formSuccess && (
-                <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 rounded-lg text-xs flex items-center space-x-2">
-                  <Check className="w-4 h-4" />
+                <div className="flex items-center space-x-2 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs text-emerald-300">
+                  <Check className="h-4 w-4" />
                   <span>{formSuccess}</span>
                 </div>
               )}
 
               <div>
-                <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-1">Full Name</label>
+                <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">Full Name</label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="John Doe"
-                  className="w-full px-3 py-2 rounded-lg glass-input text-xs"
+                  className="glass-input w-full px-4 py-3 text-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-1">Email</label>
+                <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">Email</label>
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="user@sentinelcore.io"
-                  className="w-full px-3 py-2 rounded-lg glass-input text-xs"
+                  className="glass-input w-full px-4 py-3 text-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-1">Department</label>
+                <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">Department</label>
                 <input
                   type="text"
                   value={formData.department}
                   onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                   placeholder="SOC Operations"
-                  className="w-full px-3 py-2 rounded-lg glass-input text-xs"
+                  className="glass-input w-full px-4 py-3 text-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-1">Role</label>
+                <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">Role</label>
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg glass-input text-xs bg-slate-900 text-white cursor-pointer"
+                  className="glass-input w-full cursor-pointer bg-[#0b1220] px-4 py-3 text-xs text-white"
                 >
                   <option value="VIEWER">VIEWER (Read-Only)</option>
                   <option value="ANALYST">ANALYST (Reviewer)</option>
@@ -435,7 +411,7 @@ export default function Users() {
               </div>
 
               <div>
-                <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-1">
+                <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">
                   {modalType === 'ADD' ? 'Password' : 'Change Password (Optional)'}
                 </label>
                 <input
@@ -443,22 +419,15 @@ export default function Users() {
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   placeholder="••••••••"
-                  className="w-full px-3 py-2 rounded-lg glass-input text-xs"
+                  className="glass-input w-full px-4 py-3 text-xs"
                 />
               </div>
 
-              <div className="flex space-x-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="flex-1 py-2 text-xs font-mono uppercase bg-slate-800 text-gray-400 border border-dark-border hover:bg-slate-700 hover:text-white rounded-lg transition cursor-pointer"
-                >
+              <div className="flex gap-2 pt-2">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="sc-button-secondary flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.24em]">
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  className="flex-1 py-2 text-xs font-mono uppercase bg-primary text-black font-bold rounded-lg hover:bg-primary-hover transition cursor-pointer"
-                >
+                <button type="submit" className="sc-button-primary flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.24em]">
                   Save Changes
                 </button>
               </div>
@@ -467,27 +436,20 @@ export default function Users() {
         </div>
       )}
 
-      {/* Delete Confirmation Dialog */}
       {userToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-sm glass-card p-6 border border-dark-border relative animate-scale-up">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="sc-modal sc-scale-in w-full max-w-sm p-6">
             <div className="text-center">
-              <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-              <h3 className="text-lg font-bold text-white mb-2">Delete User?</h3>
-              <p className="text-xs text-gray-400 mb-6 font-mono leading-relaxed">
-                Confirm deletion of <span className="text-white font-semibold">{userToDelete.name}</span> ({userToDelete.email}). This action cannot be undone.
+              <AlertTriangle className="mx-auto mb-4 h-12 w-12 text-red-300" />
+              <h3 className="mb-2 text-lg font-bold text-white">Delete User?</h3>
+              <p className="mb-6 text-xs leading-relaxed text-slate-400 font-mono">
+                Confirm deletion of <span className="font-semibold text-white">{userToDelete.name}</span> ({userToDelete.email}). This action cannot be undone.
               </p>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => setUserToDelete(null)}
-                  className="flex-1 py-2 text-xs font-mono uppercase bg-slate-800 text-gray-400 border border-dark-border hover:bg-slate-700 hover:text-white rounded-lg transition cursor-pointer"
-                >
+              <div className="flex gap-2">
+                <button onClick={() => setUserToDelete(null)} className="sc-button-secondary flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.24em]">
                   Cancel
                 </button>
-                <button
-                  onClick={handleDeleteUser}
-                  className="flex-1 py-2 text-xs font-mono uppercase bg-red-600 text-white font-bold rounded-lg hover:bg-red-500 transition cursor-pointer"
-                >
+                <button onClick={handleDeleteUser} className="sc-button-danger flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.24em]">
                   Delete
                 </button>
               </div>
