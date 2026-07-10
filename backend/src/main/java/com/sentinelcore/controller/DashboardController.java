@@ -35,9 +35,16 @@ public class DashboardController {
     @Autowired
     private AuditLogRepository auditLogRepository;
 
+    @Autowired
+    private TeamRepository teamRepository;
+
     @GetMapping("/stats")
     public ResponseEntity<?> getStats() {
         long totalLogs = logRepository.count();
+        long totalTeams = teamRepository.count();
+        var recentLogins = auditLogRepository.findTop5ByActionInOrderByTimestampDesc(
+                Arrays.asList("LOGIN_SUCCESS", "LOGIN_FAILED")
+        );
         long activeAlerts = alertRepository.countByStatus("NEW") + alertRepository.countByStatus("INVESTIGATING");
         long activeIncidents = incidentRepository.countByStatus("NEW") + incidentRepository.countByStatus("ASSIGNED") + incidentRepository.countByStatus("INVESTIGATING");
         long criticalThreats = alertRepository.countBySeverity("CRITICAL");
@@ -119,6 +126,8 @@ public class DashboardController {
         response.put("threatTimeline", threatTimeline);
         response.put("attackMap", attackMap);
         response.put("topAttackedAssets", topAttackedAssets);
+        response.put("totalTeams", totalTeams);
+        response.put("recentLogins", recentLogins);
         response.put("systemHealth", Map.of(
                 "status", "HEALTHY",
                 "cpuUsage", "18%",
