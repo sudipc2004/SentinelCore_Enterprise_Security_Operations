@@ -8,6 +8,7 @@ v1.0.0.0 Sprint 1
 - JWT-based authentication and protected routes
 - Role-based access control for `ADMIN`, `ANALYST`, and `VIEWER`
 - Operator registration, login, logout, and token persistence
+- Implemented audit logs
 - User directory with search, filters, pagination, status updates, and admin CRUD actions
 - Team management with team leads, members, search, and admin CRUD actions
 - MongoDB persistence for internal authentication and administration logs
@@ -210,7 +211,9 @@ npm install
 npm.cmd run dev
 npm.cmd run build
 npm.cmd run lint
-
+Admin Details:
+email: admin@sentinelcore.in
+password: Admin@123
 ```
 
 ## Notes
