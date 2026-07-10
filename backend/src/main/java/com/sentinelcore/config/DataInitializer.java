@@ -8,7 +8,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -29,7 +29,7 @@ public class DataInitializer implements CommandLineRunner {
             admin.setRole(Role.ADMIN);
             admin.setDepartment("Cyber Security Operations");
             admin.setStatus("ACTIVE");
-            admin.setCreatedAt(Instant.now());
+            admin.setCreatedAt(LocalDateTime.now());
             userRepository.save(admin);
 
             System.out.println("=================================================");

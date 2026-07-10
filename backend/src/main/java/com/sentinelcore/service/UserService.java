@@ -9,7 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -20,6 +20,13 @@ public class UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    public Page<User> findAll(String search, String status, Role role, Pageable pageable) {
+        if (search != null || status != null || role != null) {
+            return searchUsers(search, role != null ? role.name() : null, null, pageable);
+        }
+        return userRepository.findAll(pageable);
+    }
 
     public Optional<User> findById(String id) {
         return userRepository.findById(id);
@@ -35,7 +42,7 @@ public class UserService {
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setStatus("ACTIVE");
-        user.setCreatedAt(Instant.now());
+        user.setCreatedAt(LocalDateTime.now());
         return userRepository.save(user);
     }
 

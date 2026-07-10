@@ -31,3 +31,8 @@ Thumbs.db
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Python files
+__pycache__/
+*.py[cod]
+*$py.class
