@@ -7,6 +7,13 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Teams from './pages/Teams';
 import Users from './pages/Users';
+import Dashboard from './pages/Dashboard';
+import Logs from './pages/Logs';
+import Alerts from './pages/Alerts';
+import Incidents from './pages/Incidents';
+import ThreatIntel from './pages/ThreatIntel';
+import Assets from './pages/Assets';
+import Reports from './pages/Reports';
 
 function PublicRoute({ children }) {
   const { user, loading } = useAuth();
@@ -63,7 +70,63 @@ function App() {
             path="/"
             element={
               <ProtectedRoute>
-                <Navigate to="/users" replace />
+                <Navigate to="/dashboard" replace />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/logs"
+            element={
+              <ProtectedRoute>
+                <Logs />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/alerts"
+            element={
+              <ProtectedRoute>
+                <Alerts />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/incidents"
+            element={
+              <ProtectedRoute>
+                <Incidents />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/threat-intel"
+            element={
+              <ProtectedRoute>
+                <ThreatIntel />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/assets"
+            element={
+              <ProtectedRoute>
+                <Assets />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports"
+            element={
+              <ProtectedRoute>
+                <Reports />
               </ProtectedRoute>
             }
           />
