@@ -1,20 +1,36 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Navigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Shield, Users, Network, LogOut, Terminal } from 'lucide-react';
+import {
+  Shield,
+  Users,
+  Network,
+  LogOut,
+  Terminal,
+  Search,
+  Bell,
+  Menu,
+  LayoutDashboard,
+  ChevronRight,
+  Maximize2,
+  Command,
+  CircleUserRound,
+  BadgeCheck,
+} from 'lucide-react';
 
 export default function ProtectedLayout({ children }) {
   const { user, loading, logout } = useAuth();
   const location = useLocation();
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-dark-bg flex flex-col items-center justify-center">
-        <div className="relative w-16 h-16 mb-4">
+      <div className="min-h-screen sc-shell flex flex-col items-center justify-center px-4">
+        <div className="relative mb-4 h-16 w-16">
           <div className="absolute inset-0 rounded-full border-4 border-primary/20 animate-pulse"></div>
           <div className="absolute inset-0 rounded-full border-4 border-t-primary animate-spin"></div>
         </div>
-        <div className="flex items-center space-x-2 text-gray-400 font-mono text-sm">
+        <div className="flex items-center space-x-2 font-mono text-sm text-slate-400">
           <Terminal className="w-4 h-4 text-primary animate-pulse" />
           <span>Loading your session...</span>
         </div>
@@ -27,42 +43,60 @@ export default function ProtectedLayout({ children }) {
   }
 
   const menuItems = [
-    { name: 'User Management', path: '/users', icon: Users },
-    { name: 'Team Management', path: '/teams', icon: Network },
+    { name: 'Overview', path: '/users', icon: LayoutDashboard },
+    { name: 'Users', path: '/users', icon: Users },
+    { name: 'Teams', path: '/teams', icon: Network },
   ];
 
+  const currentRoute = menuItems.find((item) => location.pathname === item.path) || { name: 'Command Center' };
+  const userInitial = (user?.name || user?.email || 'S').charAt(0).toUpperCase();
+
   return (
-    <div className="min-h-screen bg-dark-bg text-gray-200 flex">
-      {/* Sidebar */}
-      <aside className="w-64 border-r border-dark-border bg-slate-900/40 backdrop-blur-md flex flex-col z-20">
-        <div className="p-6 border-b border-dark-border flex items-center space-x-3">
-          <div className="p-2 bg-primary/10 rounded-lg border border-primary/20">
-            <Shield className="w-6 h-6 text-primary" />
-          </div>
-          <div>
-            <h2 className="text-lg font-bold tracking-wide text-white">SENTINEL<span className="text-primary font-light">CORE</span></h2>
-            <span className="text-xs text-gray-500 font-mono">v1.0.0-SPRINT1</span>
-          </div>
-        </div>
-
-        {/* User Card */}
-        <div className="p-4 border-b border-dark-border bg-slate-900/20">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-full bg-secondary/20 border border-secondary/35 flex items-center justify-center text-secondary font-bold text-lg uppercase">
-              {user.name.charAt(0)}
+    <div className="min-h-screen sc-shell text-slate-100 lg:flex lg:gap-6 lg:p-6">
+      <aside className={`sc-sidebar fixed inset-y-0 left-0 z-30 flex w-80 flex-col overflow-hidden border-r border-white/8 p-5 transition-transform duration-200 lg:sticky lg:top-6 lg:h-[calc(100vh-3rem)] lg:translate-x-0 ${isCollapsed ? '-translate-x-full lg:w-24' : 'translate-x-0'}`}>
+        <div className="flex items-center justify-between gap-3 border-b border-white/8 pb-5">
+          <Link to="/users" className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-sky-400 shadow-[0_12px_28px_rgba(37,99,235,0.35)]">
+              <Shield className="h-6 w-6 text-white" />
             </div>
-            <div className="overflow-hidden">
-              <p className="text-sm font-semibold text-white truncate">{user.name}</p>
-              <div className="flex items-center space-x-1">
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
-                <span className="text-xs text-gray-400 font-mono truncate">{user.role}</span>
+            {!isCollapsed && (
+              <div>
+                <div className="text-base font-bold tracking-[0.2em] text-white">SENTINEL<span className="text-sky-300">CORE</span></div>
+                <p className="text-[11px] uppercase tracking-[0.28em] text-slate-400">Enterprise Security</p>
               </div>
+            )}
+          </Link>
+          <button
+            type="button"
+            onClick={() => setIsCollapsed((value) => !value)}
+            className="hidden rounded-xl border border-white/10 bg-white/5 p-2 text-slate-300 transition hover:border-sky-400/30 hover:text-white lg:inline-flex"
+            aria-label="Toggle sidebar"
+          >
+            <Menu className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="mt-5 rounded-2xl border border-white/8 bg-[#0b1220]/70 p-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-500/10 text-sky-300 ring-1 ring-sky-500/20">
+              {userInitial}
             </div>
+            {!isCollapsed && (
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-white">{user.name}</p>
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <span className="sc-badge border-emerald-500/20 bg-emerald-500/10 text-emerald-300">{user.role}</span>
+                  <span className="inline-flex items-center gap-1 text-xs text-slate-400">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                    Online
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Nav Links */}
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+        <nav className="mt-5 flex-1 space-y-2 overflow-y-auto pr-1">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
@@ -70,47 +104,109 @@ export default function ProtectedLayout({ children }) {
               <Link
                 key={item.name}
                 to={item.path}
-                className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-150 ${
-                  isActive
-                    ? 'bg-primary/15 text-primary border-l-2 border-primary'
-                    : 'text-gray-400 hover:bg-slate-800/40 hover:text-white'
-                }`}
+                className={`group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition duration-200 ${isActive ? 'bg-blue-500/10 text-white ring-1 ring-blue-400/25' : 'text-slate-400 hover:bg-white/5 hover:text-white'} ${isCollapsed ? 'justify-center' : ''}`}
               >
-                <Icon className={`w-5 h-5 ${isActive ? 'text-primary' : 'text-gray-400'}`} />
-                <span>{item.name}</span>
+                <span className={`flex h-10 w-10 items-center justify-center rounded-xl border transition ${isActive ? 'border-blue-400/30 bg-blue-400/10 text-sky-300' : 'border-white/8 bg-[#0f172a] text-slate-400 group-hover:border-white/10 group-hover:text-sky-300'}`}>
+                  <Icon className="h-5 w-5" />
+                </span>
+                {!isCollapsed && <span className="flex-1">{item.name}</span>}
+                {!isCollapsed && isActive && <ChevronRight className="h-4 w-4 text-sky-300" />}
               </Link>
             );
           })}
         </nav>
 
-        {/* Footer / Logout */}
-        <div className="p-4 border-t border-dark-border">
-          <button
-            onClick={logout}
-            className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all duration-150 cursor-pointer"
-          >
-            <LogOut className="w-5 h-5" />
-            <span>Log Out</span>
+        <div className="mt-4 space-y-3 border-t border-white/8 pt-4">
+          {!isCollapsed && (
+            <div className="rounded-2xl border border-white/8 bg-white/5 p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-500/10 text-sky-300">
+                  <CircleUserRound className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-white">{user.email}</p>
+                  <div className="mt-1 flex items-center gap-2 text-xs text-slate-400">
+                    <BadgeCheck className="h-3.5 w-3.5 text-emerald-300" />
+                    Session secured with RBAC Tier 1
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          <button onClick={logout} className={`sc-button-danger w-full px-4 py-3 text-sm font-semibold ${isCollapsed ? 'justify-center' : 'justify-start'}`}>
+            <LogOut className="h-4 w-4" />
+            {!isCollapsed && <span>Logout</span>}
           </button>
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Navbar */}
-        <header className="h-16 border-b border-dark-border bg-slate-900/20 backdrop-blur-md flex items-center justify-between px-8">
-          <div className="flex items-center space-x-2">
-            <span className="text-xs text-gray-400 font-mono">Status:</span>
-            <span className="text-xs bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/25 font-mono">ONLINE</span>
+      <div className="flex min-w-0 flex-1 flex-col gap-6 lg:ml-0">
+        <header className="sc-topbar sticky top-0 z-20 mx-4 mt-4 flex flex-col gap-4 px-4 py-4 sm:px-6 lg:mx-0 lg:px-6">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <div className="flex items-start gap-3">
+              <button
+                type="button"
+                onClick={() => setIsCollapsed((value) => !value)}
+                className="inline-flex rounded-xl border border-white/10 bg-white/5 p-2 text-slate-300 transition hover:border-sky-400/30 hover:text-white lg:hidden"
+                aria-label="Toggle navigation"
+              >
+                <Menu className="h-4 w-4" />
+              </button>
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.28em] text-slate-400">
+                  <span>Command center</span>
+                  <ChevronRight className="h-3 w-3" />
+                  <span>{currentRoute.name}</span>
+                </div>
+                <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">{currentRoute.name}</h1>
+                <div className="flex flex-wrap items-center gap-2 text-sm text-slate-400">
+                  <span>Home</span>
+                  <ChevronRight className="h-3.5 w-3.5 text-slate-500" />
+                  <span>{location.pathname === '/teams' ? 'Teams' : 'Users'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-[minmax(240px,1fr)_auto] xl:min-w-[42rem] xl:grid-cols-[minmax(280px,1fr)_auto_auto]">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                <input
+                  type="text"
+                  placeholder="Search incidents, users, teams"
+                  className="glass-input w-full border-white/10 bg-[#0b1220]/90 py-3 pl-11 pr-4 text-sm text-slate-100 placeholder:text-slate-500"
+                />
+              </div>
+              <button className="sc-button-secondary px-4 py-3 text-sm font-semibold">
+                <Bell className="h-4 w-4 text-sky-300" />
+                Alerts
+              </button>
+              <button className="sc-button-primary px-4 py-3 text-sm font-semibold">
+                <Command className="h-4 w-4" />
+                Quick Actions
+              </button>
+            </div>
           </div>
-          <div className="text-xs text-gray-400 font-mono">
-            Active: {user.email}
+
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/8 pt-4 text-xs text-slate-400">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="sc-badge border-emerald-500/20 bg-emerald-500/10 text-emerald-300">ONLINE</span>
+              <span className="sc-badge border-sky-500/20 bg-sky-500/10 text-sky-300">JWT-SECURE</span>
+              <span className="sc-badge border-white/10 bg-white/5 text-slate-300">{user.role}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 rounded-full border border-white/8 bg-white/5 px-3 py-1.5">
+                <Maximize2 className="h-3.5 w-3.5 text-sky-300" />
+                <span>{user.email}</span>
+              </div>
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-sky-400 text-sm font-semibold text-white ring-1 ring-white/10">
+                {userInitial}
+              </div>
+            </div>
           </div>
         </header>
 
-        {/* Page Content wrapper */}
-        <main className="flex-1 p-8 overflow-y-auto">
-          {children}
+        <main className="mx-4 mb-4 flex-1 overflow-y-auto rounded-[1.75rem] border border-white/8 bg-[#0b1220]/45 p-4 sm:p-6 lg:mx-0 lg:p-8">
+          <div className="mx-auto w-full max-w-[1700px]">{children}</div>
         </main>
       </div>
     </div>

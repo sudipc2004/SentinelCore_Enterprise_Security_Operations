@@ -63,67 +63,67 @@ export default function Register() {
 
   return (
     <AuthLayout>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4 sc-fade-in">
         {error && (
-          <div className="flex items-center space-x-2 bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-lg text-sm">
+          <div className="flex items-center space-x-2 rounded-2xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-300">
             <AlertTriangle className="w-5 h-5 flex-shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         <div>
-          <label className="block text-xs font-mono uppercase tracking-wider text-gray-400 mb-1.5">Full Name</label>
+          <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Full Name</label>
           <div className="relative">
-            <User className="absolute left-3 top-3 w-4 h-4 text-gray-500" />
+            <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Your Full Name"
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg glass-input text-sm"
+              className="glass-input w-full px-4 py-3 pl-11 text-sm"
               disabled={loading}
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-xs font-mono uppercase tracking-wider text-gray-400 mb-1.5">Email</label>
+          <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Email</label>
           <div className="relative">
-            <Mail className="absolute left-3 top-3 w-4 h-4 text-gray-500" />
+            <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="user@sentinelcore.in"
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg glass-input text-sm"
+              className="glass-input w-full px-4 py-3 pl-11 text-sm"
               disabled={loading}
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-xs font-mono uppercase tracking-wider text-gray-400 mb-1.5">Department</label>
+          <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Department</label>
           <div className="relative">
-            <Briefcase className="absolute left-3 top-3 w-4 h-4 text-gray-500" />
+            <Briefcase className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
             <input
               type="text"
               value={department}
               onChange={(e) => setDepartment(e.target.value)}
               placeholder="Security Operations"
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg glass-input text-sm"
+              className="glass-input w-full px-4 py-3 pl-11 text-sm"
               disabled={loading}
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-xs font-mono uppercase tracking-wider text-gray-400 mb-1.5">Role</label>
+          <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Role</label>
           <div className="relative">
-            <ShieldAlert className="absolute left-3 top-3 w-4 h-4 text-gray-500 pointer-events-none" />
+            <ShieldAlert className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
             <select
               value={role}
               onChange={(e) => setRole(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg glass-input text-sm appearance-none cursor-pointer bg-slate-950 text-white"
+              className="glass-input w-full appearance-none cursor-pointer bg-[#0b1220] px-4 py-3 pl-11 text-sm text-white"
               disabled={loading}
             >
               <option value="VIEWER">VIEWER</option>
@@ -134,15 +134,15 @@ export default function Register() {
         </div>
 
         <div>
-          <label className="block text-xs font-mono uppercase tracking-wider text-gray-400 mb-1.5">Password</label>
+          <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Password</label>
           <div className="relative">
-            <Lock className="absolute left-3 top-3 w-4 h-4 text-gray-500" />
+            <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg glass-input text-sm"
+              className="glass-input w-full px-4 py-3 pl-11 text-sm"
               disabled={loading}
             />
           </div>
@@ -151,11 +151,11 @@ export default function Register() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-2.5 rounded-lg bg-primary text-black font-semibold text-sm hover:bg-primary-hover transition-all duration-150 cursor-pointer shadow-lg shadow-primary/20 flex items-center justify-center space-x-2 disabled:opacity-50 mt-2"
+          className="sc-button-primary mt-2 w-full px-4 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading ? (
             <>
-              <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
               <span>Creating account...</span>
             </>
           ) : (
@@ -163,10 +163,10 @@ export default function Register() {
           )}
         </button>
 
-        <div className="text-center mt-4">
-          <p className="text-xs text-gray-400">
+        <div className="mt-4 text-center">
+          <p className="text-xs text-slate-400">
             Already registered?{' '}
-            <Link to="/login" className="text-primary hover:underline font-semibold font-mono">
+            <Link to="/login" className="font-semibold text-sky-300 transition hover:text-sky-200">
               Log In
             </Link>
           </p>

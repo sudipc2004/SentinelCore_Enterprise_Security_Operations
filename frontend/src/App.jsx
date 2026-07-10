@@ -13,8 +13,8 @@ function PublicRoute({ children }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-dark-bg flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+      <div className="min-h-screen sc-shell flex items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary/20 border-t-primary"></div>
       </div>
     );
   }
@@ -28,11 +28,11 @@ function ProtectedRoute({ children }) {
 
 function NotFound() {
   return (
-    <div className="min-h-[60vh] flex items-center justify-center">
-      <div className="glass-card p-8 border border-dark-border text-center max-w-md">
-        <ShieldAlert className="w-10 h-10 text-warning mx-auto mb-4" />
-        <h1 className="text-xl font-bold text-white mb-2">Route Not Found</h1>
-        <p className="text-sm text-gray-400 font-mono">The page you requested does not exist.</p>
+    <div className="flex min-h-[60vh] items-center justify-center px-4">
+      <div className="glass-card sc-scale-in max-w-md border border-dark-border p-8 text-center">
+        <ShieldAlert className="mx-auto mb-4 h-10 w-10 text-warning" />
+        <h1 className="mb-2 text-xl font-bold text-white">Route Not Found</h1>
+        <p className="font-mono text-sm text-slate-400">The page you requested does not exist.</p>
       </div>
     </div>
   );

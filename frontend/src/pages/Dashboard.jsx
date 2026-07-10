@@ -110,17 +110,17 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-96">
-        <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-4"></div>
-        <p className="text-sm font-mono text-gray-400">Loading system metrics...</p>
+      <div className="flex h-96 flex-col items-center justify-center">
+        <div className="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-primary/20 border-t-primary"></div>
+        <p className="text-sm font-mono text-slate-400">Loading system metrics...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-4 bg-red-500/10 border border-red-500/25 text-red-400 rounded-lg flex items-center space-x-2">
-        <AlertTriangle className="w-5 h-5" />
+      <div className="sc-panel flex items-center space-x-2 border border-red-500/25 bg-red-500/10 p-4 text-red-300">
+        <AlertTriangle className="h-5 w-5" />
         <span>{error}</span>
       </div>
     );
@@ -144,132 +144,137 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="space-y-8">
-      {/* Header with live heartbeat */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-extrabold text-white tracking-wide">SOC Command Center</h1>
-          <p className="text-sm text-gray-400 mt-1 font-mono">Real-time threat monitoring, live telemetry feeds, and audit streams</p>
-        </div>
-        <div className="flex items-center space-x-3 bg-slate-900/60 border border-dark-border px-4 py-2 rounded-lg">
-          <div className="relative flex h-3 w-3">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+    <div className="space-y-6 sc-fade-in">
+      <div className="sc-panel flex flex-col gap-4 p-6 xl:flex-row xl:items-center xl:justify-between">
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="sc-badge border-sky-500/20 bg-sky-500/10 text-sky-300">SOC Command Center</span>
+            <span className="sc-badge border-emerald-500/20 bg-emerald-500/10 text-emerald-300">Live telemetry</span>
           </div>
-          <span className="text-xs font-mono text-emerald-400 uppercase tracking-widest font-semibold">FEED ONLINE</span>
+          <div>
+            <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Security Operations Overview</h1>
+            <p className="mt-2 max-w-3xl text-sm text-slate-400">
+              Real-time threat monitoring, live telemetry feeds, and audit streams presented in a low-noise enterprise cockpit.
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3">
+          <div className="relative flex h-3 w-3">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500"></span>
+          </div>
+          <span className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-300">Feed online</span>
         </div>
       </div>
 
-      {/* Main KPI Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         {/* Total Users */}
-        <div className="glass-card p-6 border border-dark-border flex items-center justify-between hover:border-secondary/40 transition-colors">
+        <div className="sc-card flex items-center justify-between p-6 transition duration-200 hover:-translate-y-0.5 hover:border-sky-400/30">
           <div>
-            <p className="text-xs font-mono text-gray-400 uppercase tracking-wider">Total Operators</p>
-            <h3 className="text-3xl font-bold text-white mt-1">{totalUsers}</h3>
+            <p className="sc-text-kicker">Total operators</p>
+            <h3 className="mt-1 text-3xl font-bold text-white">{totalUsers}</h3>
           </div>
-          <div className="p-3 bg-secondary/15 rounded-lg border border-secondary/25">
-            <Users className="w-6 h-6 text-secondary" />
+          <div className="rounded-2xl border border-sky-500/20 bg-sky-500/10 p-3 text-sky-300">
+            <Users className="h-6 w-6" />
           </div>
         </div>
 
         {/* Active Operators */}
-        <div className="glass-card p-6 border border-dark-border flex items-center justify-between hover:border-emerald-500/40 transition-colors">
+        <div className="sc-card flex items-center justify-between p-6 transition duration-200 hover:-translate-y-0.5 hover:border-emerald-400/30">
           <div>
-            <p className="text-xs font-mono text-gray-400 uppercase tracking-wider">Active Sessions</p>
-            <h3 className="text-3xl font-bold text-emerald-400 mt-1">{activeUsers}</h3>
+            <p className="sc-text-kicker">Active sessions</p>
+            <h3 className="mt-1 text-3xl font-bold text-emerald-300">{activeUsers}</h3>
           </div>
-          <div className="p-3 bg-emerald-500/15 rounded-lg border border-emerald-500/25">
-            <UserCheck className="w-6 h-6 text-emerald-400" />
+          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-emerald-300">
+            <UserCheck className="h-6 w-6" />
           </div>
         </div>
 
         {/* Total Teams */}
-        <div className="glass-card p-6 border border-dark-border flex items-center justify-between hover:border-primary/40 transition-colors">
+        <div className="sc-card flex items-center justify-between p-6 transition duration-200 hover:-translate-y-0.5 hover:border-blue-400/30">
           <div>
-            <p className="text-xs font-mono text-gray-400 uppercase tracking-wider">Security Teams</p>
-            <h3 className="text-3xl font-bold text-white mt-1">{totalTeams}</h3>
+            <p className="sc-text-kicker">Security teams</p>
+            <h3 className="mt-1 text-3xl font-bold text-white">{totalTeams}</h3>
           </div>
-          <div className="p-3 bg-primary/15 rounded-lg border border-primary/25">
-            <Network className="w-6 h-6 text-primary" />
+          <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-3 text-blue-300">
+            <Network className="h-6 w-6" />
           </div>
         </div>
 
         {/* Risk Status */}
-        <div className="glass-card p-6 border border-dark-border flex items-center justify-between hover:border-red-500/40 transition-colors">
+        <div className="sc-card flex items-center justify-between p-6 transition duration-200 hover:-translate-y-0.5 hover:border-red-400/30">
           <div>
-            <p className="text-xs font-mono text-gray-400 uppercase tracking-wider">System Threat Level</p>
-            <h3 className="text-2xl font-bold text-white mt-1 flex items-center space-x-2">
-              <span className={`inline-block px-2 py-0.5 rounded text-xs font-mono border ${getThreatColor(telemetry.riskScore)}`}>
+            <p className="sc-text-kicker">System threat level</p>
+            <h3 className="mt-1 flex items-center space-x-2 text-2xl font-bold text-white">
+              <span className={`inline-block rounded-full px-2.5 py-1 text-[10px] font-bold border ${getThreatColor(telemetry.riskScore)}`}>
                 {telemetry.riskScore < 30 ? 'NORMAL' : telemetry.riskScore < 60 ? 'ELEVATED' : 'CRITICAL'}
               </span>
             </h3>
           </div>
-          <div className="p-3 bg-red-500/10 rounded-lg border border-red-500/20">
-            <ShieldAlert className="w-6 h-6 text-red-400 animate-pulse" />
+          <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-3 text-red-300">
+            <ShieldAlert className="h-6 w-6 animate-pulse" />
           </div>
         </div>
       </div>
 
-      {/* Main Grid: Telemetry, Alerts, Audit Logs */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         
         {/* Left Column: Live Alerts Stream */}
-        <div className="lg:col-span-2 glass-card p-6 border border-dark-border flex flex-col h-[550px]">
-          <div className="flex justify-between items-center pb-4 mb-4 border-b border-dark-border">
+        <div className="sc-panel flex h-[560px] flex-col p-6 xl:col-span-2">
+          <div className="mb-4 flex items-center justify-between border-b border-white/8 pb-4">
             <div className="flex items-center space-x-2">
-              <Activity className="w-5 h-5 text-red-500 animate-pulse" />
-              <h4 className="text-sm font-bold uppercase tracking-wider text-white">Live Threat Alerts Stream</h4>
+              <Activity className="h-5 w-5 animate-pulse text-red-300" />
+              <h4 className="text-sm font-bold uppercase tracking-[0.24em] text-white">Live threat alerts stream</h4>
             </div>
-            <span className="text-[10px] font-mono bg-red-500/10 text-red-400 px-2 py-0.5 rounded border border-red-500/20">
+            <span className="sc-badge border-red-500/20 bg-red-500/10 text-red-300">
               {alerts.filter(a => a.status === 'ACTIVE').length} Active
             </span>
           </div>
 
-          <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+          <div className="flex-1 space-y-3 overflow-y-auto pr-1">
             {alerts.length > 0 ? (
               alerts.map((alertItem) => {
                 const isCritical = alertItem.severity === 'CRITICAL';
                 const isHigh = alertItem.severity === 'HIGH';
                 const isMedium = alertItem.severity === 'MEDIUM';
                 
-                let sevBg = 'bg-slate-800 text-gray-400 border-dark-border';
-                if (isCritical) sevBg = 'bg-red-500/15 text-red-400 border-red-500/30';
-                else if (isHigh) sevBg = 'bg-orange-500/15 text-orange-400 border-orange-500/30';
-                else if (isMedium) sevBg = 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30';
+                let sevBg = 'bg-white/5 text-slate-300 border-white/8';
+                if (isCritical) sevBg = 'bg-red-500/10 text-red-300 border-red-500/20';
+                else if (isHigh) sevBg = 'bg-orange-500/10 text-orange-300 border-orange-500/20';
+                else if (isMedium) sevBg = 'bg-amber-500/10 text-amber-300 border-amber-500/20';
 
                 return (
-                  <div key={alertItem.id} className={`p-4 bg-slate-900/40 border rounded-lg flex flex-col space-y-2 transition-all hover:bg-slate-900/60 ${
-                    alertItem.status === 'INVESTIGATING' ? 'border-indigo-500/35 border-dashed' : 'border-dark-border'
+                  <div key={alertItem.id} className={`flex flex-col space-y-2 rounded-2xl border p-4 transition duration-200 hover:-translate-y-0.5 hover:bg-white/5 ${
+                    alertItem.status === 'INVESTIGATING' ? 'border-sky-400/35 border-dashed bg-sky-500/5' : 'border-white/8 bg-[#0b1220]/50'
                   }`}>
                     <div className="flex justify-between items-start">
                       <div className="flex items-center space-x-2">
-                        <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded border ${sevBg}`}>
+                        <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold tracking-[0.16em] ${sevBg}`}>
                           {alertItem.severity}
                         </span>
-                        <span className="text-[10px] text-gray-500 font-mono">{alertItem.timestamp}</span>
+                        <span className="font-mono text-[10px] text-slate-500">{alertItem.timestamp}</span>
                       </div>
-                      <span className="text-[10px] text-primary font-mono">{alertItem.source}</span>
+                      <span className="font-mono text-[10px] text-sky-300">{alertItem.source}</span>
                     </div>
 
                     <p className="text-xs font-semibold text-white">{alertItem.message}</p>
 
-                    <div className="flex justify-between items-center pt-2 border-t border-dark-border/20 text-[10px]">
-                      <span className="font-mono text-gray-500">
-                        Status: <span className={alertItem.status === 'ACTIVE' ? 'text-red-400 font-bold' : 'text-indigo-400'}>{alertItem.status}</span>
+                    <div className="flex items-center justify-between border-t border-white/8 pt-2 text-[10px]">
+                      <span className="font-mono text-slate-500">
+                        Status: <span className={alertItem.status === 'ACTIVE' ? 'font-bold text-red-300' : 'text-sky-300'}>{alertItem.status}</span>
                       </span>
                       <div className="flex space-x-2">
                         {alertItem.status === 'ACTIVE' && (
                           <button
                             onClick={() => handleInvestigateAlert(alertItem.id)}
-                            className="bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 px-2 py-1 rounded font-mono transition cursor-pointer"
+                            className="sc-button-secondary px-3 py-1.5 text-[10px] font-semibold text-sky-300"
                           >
                             Investigate
                           </button>
                         )}
                         <button
                           onClick={() => handleDismissAlert(alertItem.id)}
-                          className="bg-slate-800 text-gray-400 hover:bg-slate-700 px-2 py-1 rounded font-mono transition cursor-pointer"
+                          className="sc-button-secondary px-3 py-1.5 text-[10px] font-semibold"
                         >
                           Resolve
                         </button>
@@ -279,35 +284,34 @@ export default function Dashboard() {
                 );
               })
             ) : (
-              <p className="text-xs font-mono text-gray-500 text-center mt-24">All threats resolved. Operations normal.</p>
+              <p className="mt-24 text-center text-xs font-mono text-slate-500">All threats resolved. Operations normal.</p>
             )}
           </div>
         </div>
 
         {/* Right Column: Threat Stats & System Health */}
-        <div className="space-y-8 flex flex-col h-[550px]">
+        <div className="flex h-[560px] flex-col space-y-6">
           
           {/* Threat Statistics (ML Anomaly Scoring) */}
-          <div className="glass-card p-6 border border-dark-border flex-1 flex flex-col justify-between">
+          <div className="sc-panel flex flex-1 flex-col justify-between p-6">
             <div>
-              <div className="flex items-center space-x-2 pb-3 mb-3 border-b border-dark-border">
-                <Zap className="w-5 h-5 text-primary" />
-                <h4 className="text-sm font-bold uppercase tracking-wider text-white">AI Threat Scoring</h4>
+              <div className="mb-3 flex items-center space-x-2 border-b border-white/8 pb-3">
+                <Zap className="h-5 w-5 text-sky-300" />
+                <h4 className="text-sm font-bold uppercase tracking-[0.24em] text-white">AI threat scoring</h4>
               </div>
-              <p className="text-xs text-gray-400 font-mono mb-4">ML engine anomaly confidence scale</p>
+              <p className="mb-4 text-xs font-mono text-slate-400">ML engine anomaly confidence scale</p>
               
-              {/* Risk Level Bar Dial */}
               <div className="space-y-2">
-                <div className="flex justify-between font-mono text-xs text-gray-400">
+                <div className="flex justify-between font-mono text-xs text-slate-400">
                   <span>Anomaly Risk Rating</span>
-                  <span className={telemetry.riskScore > 50 ? 'text-red-400 font-bold' : 'text-emerald-400'}>
+                  <span className={telemetry.riskScore > 50 ? 'font-bold text-red-300' : 'text-emerald-300'}>
                     {telemetry.riskScore}%
                   </span>
                 </div>
-                <div className="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                <div className="h-2.5 w-full overflow-hidden rounded-full bg-white/8">
                   <div 
                     className={`h-full rounded-full transition-all duration-1000 ${
-                      telemetry.riskScore < 30 ? 'bg-emerald-500' : telemetry.riskScore < 60 ? 'bg-yellow-500' : 'bg-red-500'
+                      telemetry.riskScore < 30 ? 'bg-emerald-400' : telemetry.riskScore < 60 ? 'bg-amber-400' : 'bg-red-400'
                     }`}
                     style={{ width: `${telemetry.riskScore}%` }}
                   ></div>
@@ -315,31 +319,30 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Severity Distribution Dials */}
-            <div className="space-y-2 mt-4">
-              <span className="text-[10px] font-mono text-gray-500 uppercase tracking-wider">Severity distribution</span>
+            <div className="mt-4 space-y-2">
+              <span className="text-[10px] font-mono uppercase tracking-[0.24em] text-slate-500">Severity distribution</span>
               <div className="grid grid-cols-4 gap-2 text-center">
-                <div className="bg-slate-900/40 p-2 border border-dark-border rounded">
-                  <span className="block text-[10px] font-mono text-red-400 font-bold">CRIT</span>
-                  <span className="text-xs font-mono text-white font-semibold">
+                <div className="rounded-xl border border-white/8 bg-white/5 p-2">
+                  <span className="block text-[10px] font-mono font-bold text-red-300">CRIT</span>
+                  <span className="text-xs font-mono font-semibold text-white">
                     {alerts.filter(a => a.severity === 'CRITICAL').length}
                   </span>
                 </div>
-                <div className="bg-slate-900/40 p-2 border border-dark-border rounded">
-                  <span className="block text-[10px] font-mono text-orange-400">HIGH</span>
-                  <span className="text-xs font-mono text-white font-semibold">
+                <div className="rounded-xl border border-white/8 bg-white/5 p-2">
+                  <span className="block text-[10px] font-mono text-orange-300">HIGH</span>
+                  <span className="text-xs font-mono font-semibold text-white">
                     {alerts.filter(a => a.severity === 'HIGH').length}
                   </span>
                 </div>
-                <div className="bg-slate-900/40 p-2 border border-dark-border rounded">
-                  <span className="block text-[10px] font-mono text-yellow-400">MED</span>
-                  <span className="text-xs font-mono text-white font-semibold">
+                <div className="rounded-xl border border-white/8 bg-white/5 p-2">
+                  <span className="block text-[10px] font-mono text-amber-300">MED</span>
+                  <span className="text-xs font-mono font-semibold text-white">
                     {alerts.filter(a => a.severity === 'MEDIUM').length}
                   </span>
                 </div>
-                <div className="bg-slate-900/40 p-2 border border-dark-border rounded">
-                  <span className="block text-[10px] font-mono text-gray-400">LOW</span>
-                  <span className="text-xs font-mono text-white font-semibold">
+                <div className="rounded-xl border border-white/8 bg-white/5 p-2">
+                  <span className="block text-[10px] font-mono text-slate-400">LOW</span>
+                  <span className="text-xs font-mono font-semibold text-white">
                     {alerts.filter(a => a.severity === 'LOW').length}
                   </span>
                 </div>
@@ -348,48 +351,44 @@ export default function Dashboard() {
           </div>
 
           {/* Diagnostic System Health Dials */}
-          <div className="glass-card p-6 border border-dark-border flex-1 flex flex-col justify-between">
+          <div className="sc-panel flex flex-1 flex-col justify-between p-6">
             <div>
-              <div className="flex items-center space-x-2 pb-3 mb-3 border-b border-dark-border">
-                <Cpu className="w-5 h-5 text-secondary" />
-                <h4 className="text-sm font-bold uppercase tracking-wider text-white">System Diagnostics</h4>
+              <div className="mb-3 flex items-center space-x-2 border-b border-white/8 pb-3">
+                <Cpu className="h-5 w-5 text-sky-300" />
+                <h4 className="text-sm font-bold uppercase tracking-[0.24em] text-white">System diagnostics</h4>
               </div>
-              <p className="text-xs text-gray-400 font-mono mb-4">Real-time health telemetry</p>
+              <p className="mb-4 text-xs font-mono text-slate-400">Real-time health telemetry</p>
             </div>
 
             <div className="space-y-4">
-              {/* CPU load */}
-              <div className="flex items-center justify-between text-xs font-mono text-gray-300">
+              <div className="flex items-center justify-between text-xs font-mono text-slate-300">
                 <div className="flex items-center space-x-2">
-                  <Cpu className="w-3.5 h-3.5 text-gray-500" />
+                  <Cpu className="h-3.5 w-3.5 text-slate-500" />
                   <span>Server CPU Load</span>
                 </div>
                 <span className="text-white font-semibold">{telemetry.cpu}%</span>
               </div>
 
-              {/* Memory usage */}
-              <div className="flex items-center justify-between text-xs font-mono text-gray-300">
+              <div className="flex items-center justify-between text-xs font-mono text-slate-300">
                 <div className="flex items-center space-x-2">
-                  <HardDrive className="w-3.5 h-3.5 text-gray-500" />
+                  <HardDrive className="h-3.5 w-3.5 text-slate-500" />
                   <span>DB RAM Pool</span>
                 </div>
                 <span className="text-white font-semibold">{telemetry.memory}%</span>
               </div>
 
-              {/* API response latency */}
-              <div className="flex items-center justify-between text-xs font-mono text-gray-300">
+              <div className="flex items-center justify-between text-xs font-mono text-slate-300">
                 <div className="flex items-center space-x-2">
-                  <Zap className="w-3.5 h-3.5 text-gray-500" />
+                  <Zap className="h-3.5 w-3.5 text-slate-500" />
                   <span>API Latency</span>
                 </div>
-                <span className="text-emerald-400 font-semibold">{telemetry.latency} ms</span>
+                <span className="font-semibold text-emerald-300">{telemetry.latency} ms</span>
               </div>
             </div>
 
-            {/* Diagnostics status alert */}
-            <div className="mt-4 pt-2 border-t border-dark-border/20 flex justify-between items-center text-[10px] font-mono text-gray-500">
+            <div className="mt-4 flex items-center justify-between border-t border-white/8 pt-2 text-[10px] font-mono text-slate-500">
               <span>H2 Conn Pool: ACTIVE</span>
-              <span className="text-emerald-400">HEALTHY</span>
+              <span className="text-emerald-300">HEALTHY</span>
             </div>
           </div>
 
@@ -397,56 +396,55 @@ export default function Dashboard() {
 
       </div>
 
-      {/* Audit logs & activity timeline */}
-      <div className="glass-card border border-dark-border overflow-hidden">
-        <div className="p-6 border-b border-dark-border bg-slate-900/20 flex justify-between items-center">
+      <div className="sc-table-shell overflow-hidden border border-white/8">
+        <div className="flex items-center justify-between border-b border-white/8 bg-[#0b1220]/70 p-6">
           <div>
-            <h4 className="text-sm font-bold uppercase tracking-wider text-white">Recent Operator Signins</h4>
-            <p className="text-xs text-gray-400 font-mono mt-0.5">Immutable identity login log events from backend</p>
+            <h4 className="text-sm font-bold uppercase tracking-[0.24em] text-white">Recent operator sign-ins</h4>
+            <p className="mt-0.5 text-xs font-mono text-slate-400">Immutable identity login log events from backend</p>
           </div>
           <button 
             onClick={fetchStats}
-            className="p-2 bg-slate-800 text-gray-400 hover:text-white rounded border border-dark-border hover:bg-slate-700 transition cursor-pointer"
+            className="sc-button-secondary p-2"
           >
-            <RefreshCw className="w-3.5 h-3.5" />
+            <RefreshCw className="h-3.5 w-3.5" />
           </button>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-dark-border bg-slate-900/35 text-[10px] uppercase font-mono tracking-wider text-gray-400">
-                <th className="py-4 px-6">Timestamp</th>
-                <th className="py-4 px-6">User Email</th>
-                <th className="py-4 px-6">Action</th>
-                <th className="py-4 px-6">Origin IP</th>
+              <tr className="border-b border-white/8 text-[10px] uppercase font-mono tracking-[0.24em] text-slate-400">
+                <th className="px-6 py-4">Timestamp</th>
+                <th className="px-6 py-4">User Email</th>
+                <th className="px-6 py-4">Action</th>
+                <th className="px-6 py-4">Origin IP</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-dark-border/40 text-xs">
+            <tbody className="divide-y divide-white/8 text-xs">
               {recentLogins && recentLogins.length > 0 ? (
                 recentLogins.map((log) => {
                   const isSuccess = log.action === 'LOGIN_SUCCESS';
                   return (
-                    <tr key={log.id} className="hover:bg-slate-900/15 transition">
-                      <td className="py-4 px-6 text-gray-400 font-mono whitespace-nowrap">
+                    <tr key={log.id} className="transition hover:bg-white/5">
+                      <td className="whitespace-nowrap px-6 py-4 font-mono text-slate-400">
                         {log.timestamp ? new Date(log.timestamp).toLocaleString() : 'N/A'}
                       </td>
-                      <td className="py-4 px-6 text-gray-300 font-mono">{log.userEmail}</td>
-                      <td className="py-4 px-6">
-                        <span className={`inline-block px-2.5 py-0.5 rounded font-mono text-[10px] font-bold border ${
+                      <td className="px-6 py-4 font-mono text-slate-300">{log.userEmail}</td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-block rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold tracking-[0.16em] ${
                           isSuccess 
-                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
-                            : 'bg-red-500/10 text-red-400 border-red-500/20'
+                            ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' 
+                            : 'bg-red-500/10 text-red-300 border-red-500/20'
                         }`}>
                           {log.action}
                         </span>
                       </td>
-                      <td className="py-4 px-6 text-gray-400 font-mono">{log.ipAddress}</td>
+                      <td className="px-6 py-4 font-mono text-slate-400">{log.ipAddress}</td>
                     </tr>
                   );
                 })
               ) : (
                 <tr>
-                  <td colSpan="4" className="py-8 text-center text-xs font-mono text-gray-500">
+                  <td colSpan="4" className="py-8 text-center text-xs font-mono text-slate-500">
                     No sign-in records logged.
                   </td>
                 </tr>
