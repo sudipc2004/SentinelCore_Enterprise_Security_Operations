@@ -12,7 +12,7 @@ export default function AuthLayout({ children }) {
             <div className="max-w-xl space-y-8">
               <div className="inline-flex items-center gap-3 rounded-2xl border border-white/8 bg-white/5 px-4 py-3 backdrop-blur">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-sky-400 shadow-[0_10px_24px_rgba(37,99,235,0.35)]">
-                  <Shield className="h-5 w-5 text-white" />
+                  <Shield className="h-5 w-5  text-white" />
                 </div>
                 <div>
                   <div className="text-sm font-semibold tracking-[0.24em] text-white">SENTINEL<span className="text-sky-300">CORE</span></div>
@@ -82,7 +82,7 @@ export default function AuthLayout({ children }) {
                 <h2 className="mt-2 text-2xl font-bold tracking-tight text-white sm:text-3xl">Authenticate to enter the command center</h2>
               </div>
               <div className="hidden h-12 w-12 items-center justify-center rounded-2xl border border-sky-500/20 bg-sky-500/10 text-sky-300 sm:flex">
-                <Shield className="h-6 w-6" />
+                <Shield className="h-6 w-20" />
               </div>
             </div>
 
