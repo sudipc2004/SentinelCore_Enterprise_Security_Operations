@@ -1,9 +1,13 @@
 package com.sentinelcore.repository;
 
 import com.sentinelcore.model.Team;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
+
 import java.util.List;
 
-public interface TeamRepository extends JpaRepository<Team, String> {
-    List<Team> findByTeamNameContainingIgnoreCase(String teamName);
+@Repository
+public interface TeamRepository extends MongoRepository<Team, String> {
+    List<Team> findByTeamNameRegexIgnoreCase(String teamName);
+    boolean existsByTeamName(String teamName);
 }
