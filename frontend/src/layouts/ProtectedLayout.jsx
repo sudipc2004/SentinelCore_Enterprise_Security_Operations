@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -20,12 +20,33 @@ import {
   BellRing,
   Bug,
   Siren,
+  X,
 } from 'lucide-react';
 
 export default function ProtectedLayout({ children }) {
   const { user, loading, logout } = useAuth();
   const location = useLocation();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 1024;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    let prevWidth = window.innerWidth;
+    const handleResize = () => {
+      const currentWidth = window.innerWidth;
+      if (prevWidth >= 1024 && currentWidth < 1024) {
+        setIsCollapsed(true);
+      } else if (prevWidth < 1024 && currentWidth >= 1024) {
+        setIsCollapsed(false);
+      }
+      prevWidth = currentWidth;
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   if (loading) {
     return (
@@ -65,9 +86,20 @@ export default function ProtectedLayout({ children }) {
 
   return (
     <div className="min-h-screen sc-shell text-slate-100 lg:flex lg:gap-6 lg:p-6">
+      {/* Mobile Sidebar Overlay Backdrop */}
+      {!isCollapsed && (
+        <div
+          className="fixed inset-0 z-20 bg-slate-950/60 backdrop-blur-sm lg:hidden"
+          onClick={() => setIsCollapsed(true)}
+        />
+      )}
       <aside className={`sc-sidebar fixed inset-y-0 left-0 z-30 flex w-80 flex-col overflow-hidden border-r border-white/8 p-5 transition-transform duration-200 lg:sticky lg:top-6 lg:h-[calc(100vh-3rem)] lg:translate-x-0 ${isCollapsed ? '-translate-x-full lg:w-24' : 'translate-x-0'}`}>
         <div className="flex items-center justify-between gap-3 border-b border-white/8 pb-5">
-          <Link to="/dashboard" className="flex items-center gap-3">
+          <Link
+            to="/dashboard"
+            className="flex items-center gap-3"
+            onClick={() => { if (window.innerWidth < 1024) setIsCollapsed(true); }}
+          >
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-800 to-sky-200 shadow-[0_12px_28px_rgba(37,99,235,0.35)]">
               <Shield className="h-6 w-6 text-white" />
             </div>
@@ -86,6 +118,17 @@ export default function ProtectedLayout({ children }) {
           >
             <Menu className="h-4 w-4" />
           </button>
+          {/* Mobile Close Button */}
+          {!isCollapsed && (
+            <button
+              type="button"
+              onClick={() => setIsCollapsed(true)}
+              className="rounded-xl border border-white/10 bg-white/5 p-2 text-slate-300 transition hover:border-sky-400/30 hover:text-white lg:hidden"
+              aria-label="Close sidebar"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
 
         <nav className="mt-5 flex-1 space-y-2 overflow-y-auto pr-1">
@@ -96,6 +139,7 @@ export default function ProtectedLayout({ children }) {
               <Link
                 key={item.name}
                 to={item.path}
+                onClick={() => { if (window.innerWidth < 1024) setIsCollapsed(true); }}
                 className={`group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition duration-200 ${isActive ? 'bg-blue-500/10 text-white ring-1 ring-blue-400/25' : 'text-slate-400 hover:bg-white/5 hover:text-white'} ${isCollapsed ? 'justify-center' : ''}`}
               >
                 <span className={`flex h-8 w-8 items-center justify-center rounded-xl border transition ${isActive ? 'border-blue-400/30 bg-blue-400/10 text-sky-300' : 'border-white/8 bg-[#0f172a] text-slate-400 group-hover:border-white/10 group-hover:text-sky-300'}`}>

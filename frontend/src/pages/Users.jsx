@@ -187,7 +187,7 @@ export default function Users() {
       </div>
 
       <div className="sc-panel p-6">
-        <form onSubmit={handleSearchSubmit} className="grid grid-cols-1 gap-4 md:grid-cols-4 md:items-end">
+        <form onSubmit={handleSearchSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 items-end">
           <div>
             <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Search users</label>
             <div className="relative">
