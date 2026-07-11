@@ -9,6 +9,10 @@ import Teams from './pages/Teams';
 import Users from './pages/Users';
 import Dashboard from './pages/Dashboard';
 import AuditLogs from './pages/AuditLogs';
+import Alerts from './pages/Alerts';
+import Incidents from './pages/Incidents';
+import Threats from './pages/Threats';
+import Vulnerabilities from './pages/Vulnerabilities';
 
 function PublicRoute({ children }) {
   const { user, loading } = useAuth();
@@ -98,6 +102,42 @@ function App() {
             element={
               <ProtectedRoute>
                 <AuditLogs />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/incidents"
+            element={
+              <ProtectedRoute>
+                <Incidents />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/threats"
+            element={
+              <ProtectedRoute>
+                <Threats />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/alerts"
+            element={
+              <ProtectedRoute>
+                <Alerts />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/vulnerabilities"
+            element={
+              <ProtectedRoute>
+                <Vulnerabilities />
               </ProtectedRoute>
             }
           />

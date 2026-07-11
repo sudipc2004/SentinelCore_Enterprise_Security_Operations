@@ -14,6 +14,12 @@ import {
   Maximize2,
   CircleUserRound,
   BadgeCheck,
+  FileWarning,
+  ShieldAlert,
+  Radar,
+  BellRing,
+  Bug,
+  Siren,
 } from 'lucide-react';
 
 export default function ProtectedLayout({ children }) {
@@ -47,6 +53,11 @@ export default function ProtectedLayout({ children }) {
     ...(user?.role === 'ADMIN' || user?.role === 'ANALYST'
       ? [{ name: 'Audit Logs', path: '/audit-logs', icon: ScrollText }]
       : []),
+    { name: 'Incidents', path: '/incidents', icon: Siren },
+    { name: 'Threats Intel', path: '/threats', icon: Radar },
+    {name: 'Vulnerabilities', path: '/vulnerabilities', icon: Bug },
+    {name: 'Alerts', path: '/alerts', icon: BellRing },
+
   ];
 
   const currentRoute = menuItems.find((item) => location.pathname === item.path) || { name: 'Command Center' };
@@ -77,26 +88,6 @@ export default function ProtectedLayout({ children }) {
           </button>
         </div>
 
-        <div className="mt-5 rounded-2xl border border-white/8 bg-[#0b1220]/70 p-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-500/10 text-sky-300 ring-1 ring-sky-500/20">
-              {userInitial}
-            </div>
-            {!isCollapsed && (
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-white">{user.name}</p>
-                <div className="mt-1 flex flex-wrap items-center gap-2">
-                  <span className="sc-badge border-emerald-500/20 bg-emerald-500/10 text-emerald-300">{user.role}</span>
-                  <span className="inline-flex items-center gap-1 text-xs text-slate-400">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                    Online
-                  </span>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
         <nav className="mt-5 flex-1 space-y-2 overflow-y-auto pr-1">
           {menuItems.map((item) => {
             const Icon = item.icon;
@@ -107,7 +98,7 @@ export default function ProtectedLayout({ children }) {
                 to={item.path}
                 className={`group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition duration-200 ${isActive ? 'bg-blue-500/10 text-white ring-1 ring-blue-400/25' : 'text-slate-400 hover:bg-white/5 hover:text-white'} ${isCollapsed ? 'justify-center' : ''}`}
               >
-                <span className={`flex h-10 w-10 items-center justify-center rounded-xl border transition ${isActive ? 'border-blue-400/30 bg-blue-400/10 text-sky-300' : 'border-white/8 bg-[#0f172a] text-slate-400 group-hover:border-white/10 group-hover:text-sky-300'}`}>
+                <span className={`flex h-8 w-8 items-center justify-center rounded-xl border transition ${isActive ? 'border-blue-400/30 bg-blue-400/10 text-sky-300' : 'border-white/8 bg-[#0f172a] text-slate-400 group-hover:border-white/10 group-hover:text-sky-300'}`}>
                   <Icon className="h-5 w-5" />
                 </span>
                 {!isCollapsed && <span className="flex-1">{item.name}</span>}
@@ -130,6 +121,13 @@ export default function ProtectedLayout({ children }) {
                     <BadgeCheck className="h-3.5 w-3.5 text-emerald-300" />
                   </div>
                   <p className="text-xs text-green-500">Sentinel Core Version V1.0</p>
+                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <span className="sc-badge border-emerald-500/20 bg-emerald-500/10 text-emerald-300">{user.role}</span>
+                  <span className="inline-flex items-center gap-1 text-xs text-slate-400">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                    Online
+                  </span>
+                </div>
                 </div>
               </div>
             </div>
@@ -170,8 +168,9 @@ export default function ProtectedLayout({ children }) {
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/8 pt-4 text-xs text-slate-400">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="sc-badge border-emerald-500/20 bg-emerald-500/10 text-emerald-300">ONLINE</span>
-                <span className="sc-badge border-sky-500/20 bg-sky-500/10 text-sky-300">JWT-SECURE</span>
+                {/* <span className="sc-badge border-sky-500/20 bg-sky-500/10 text-sky-300">JWT-SECURE</span> */}
                 <span className="sc-badge border-white/10 bg-white/5 text-slate-300">{user.role}</span>
+                <span className="sc-badge border-white/10 bg-white/5 text-slate-300">{user.department}</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-2 rounded-full border border-white/8 bg-white/5 px-3 py-1.5">
