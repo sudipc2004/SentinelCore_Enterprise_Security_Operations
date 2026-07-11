@@ -16,7 +16,7 @@ export default function Teams() {
 
   // Selected Team Detail view state
   const [activeTeamId, setActiveTeamId] = useState(null);
-  
+
   // Modals
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState('ADD'); // ADD or EDIT
@@ -149,7 +149,7 @@ export default function Teams() {
   const handleMemberCheckboxChange = (userId) => {
     setFormData(prev => {
       const isChecked = prev.members.includes(userId);
-      const newMembers = isChecked 
+      const newMembers = isChecked
         ? prev.members.filter(id => id !== userId)
         : [...prev.members, userId];
       return { ...prev, members: newMembers };
@@ -166,7 +166,7 @@ export default function Teams() {
             <span className="sc-badge border-sky-500/20 bg-sky-500/10 text-sky-300">Team operations</span>
             <span className="sc-badge border-white/10 bg-white/5 text-slate-300">Collaborative access</span>
           </div>
-          <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Teams</h1>
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-white sm:text-2xl">Teams</h1>
           <p className="mt-2 max-w-3xl text-sm text-slate-400">Create teams, assign leads, and manage members using the same enterprise styling as the rest of the platform.</p>
         </div>
         {isAdmin && (
@@ -217,11 +217,10 @@ export default function Teams() {
               <div
                 key={t.id}
                 onClick={() => setActiveTeamId(t.id)}
-                className={`cursor-pointer rounded-2xl border p-5 transition duration-200 hover:-translate-y-0.5 ${
-                  activeTeamId === t.id
+                className={`cursor-pointer rounded-2xl border p-5 transition duration-200 hover:-translate-y-0.5 ${activeTeamId === t.id
                     ? 'border-sky-400/30 bg-sky-500/8 shadow-[0_12px_30px_rgba(37,99,235,0.18)]'
                     : 'border-white/8 bg-[#161b22]/90 hover:border-sky-400/20 hover:bg-white/5'
-                }`}
+                  }`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <h3 className="truncate text-sm font-bold tracking-wide text-white">{t.teamName}</h3>
@@ -348,19 +347,25 @@ export default function Teams() {
                     type="text"
                     value={formData.teamName}
                     onChange={(e) => setFormData({ ...formData, teamName: e.target.value })}
-                    placeholder="Red Team Alpha"
+                    placeholder="Team Alpha"
                     className="glass-input w-full px-4 py-3 text-xs"
                   />
                 </div>
                 <div>
                   <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">Department</label>
-                  <input
-                    type="text"
+                  <select
                     value={formData.department}
                     onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                    placeholder="Cyber Intel"
                     className="glass-input w-full px-4 py-3 text-xs"
-                  />
+                  >
+                    <option value="">All Departments</option>
+                    <option value="Developer">Developer</option>
+                    <option value="IT Support">IT Support</option>
+                    <option value="QA">QA</option>
+                    <option value="HR">HR</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Sales&Marketing">Sales & Marketing</option>
+                  </select>
                 </div>
               </div>
 

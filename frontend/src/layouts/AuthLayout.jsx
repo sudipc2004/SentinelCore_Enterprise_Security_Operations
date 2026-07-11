@@ -11,27 +11,24 @@ export default function AuthLayout({ children }) {
           <div className="relative z-10 flex h-full flex-col justify-between gap-10">
             <div className="max-w-xl space-y-8">
               <div className="inline-flex items-center gap-3 rounded-2xl border border-white/8 bg-white/5 px-4 py-3 backdrop-blur">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-sky-400 shadow-[0_10px_24px_rgba(37,99,235,0.35)]">
-                  <Shield className="h-5 w-5  text-white" />
+                <div className="flex h-10 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-blue-800 to-sky-200 shadow-[0_10px_24px_rgba(37,99,235,0.35)]">
+                  <Shield className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <div className="text-sm font-semibold tracking-[0.24em] text-white">SENTINEL<span className="text-sky-300">CORE</span></div>
+                  <div className="text-sm font-semibold tracking-[0.22em] text-white">SENTINEL<span className="text-sky-300">CORE</span></div>
                   <p className="text-[11px] uppercase tracking-[0.28em] text-slate-400">Enterprise Security Operations Platform</p>
                 </div>
               </div>
 
               <div className="space-y-5">
                 <p className="sc-text-kicker text-sky-300">Security command center</p>
-                <h1 className="sc-title max-w-2xl text-5xl font-extrabold tracking-tight sm:text-6xl lg:text-7xl">
+                <h1 className="sc-title max-w-1xl text-xl font-extrabold tracking-tight sm:text-5l lg:text-7l">
                   Enterprise
-                  <br />
                   Security
-                  <br />
-                  <span className="sc-title-accent">Operations</span>
-                  <br />
-                  <span className="sc-title-accent">Platform</span>
+                  <span className="sc-title-accent"> Operations </span>
+                  <span className="sc-title-accent"> Platform</span>
                 </h1>
-                <p className="max-w-xl text-sm leading-7 text-slate-300 sm:text-base">
+                <p className="max-w-1xl text-sm leading-5 text-slate-300 sm:text-base">
                   Unified threat monitoring, identity controls, and operational telemetry for teams that need a secure command plane without the visual noise.
                 </p>
               </div>
@@ -79,10 +76,10 @@ export default function AuthLayout({ children }) {
             <div className="mb-8 flex items-center justify-between">
               <div>
                 <p className="sc-text-kicker text-sky-300">System access</p>
-                <h2 className="mt-2 text-2xl font-bold tracking-tight text-white sm:text-3xl">Authenticate to enter the command center</h2>
+                <h2 className="mt-2 text-1xl font-bold tracking-tight text-sky-600 sm:text-1xl">Authenticate to enter the command center</h2>
               </div>
               <div className="hidden h-12 w-12 items-center justify-center rounded-2xl border border-sky-500/20 bg-sky-500/10 text-sky-300 sm:flex">
-                <Shield className="h-6 w-20" />
+                <Shield className="h-6 w-6" />
               </div>
             </div>
 

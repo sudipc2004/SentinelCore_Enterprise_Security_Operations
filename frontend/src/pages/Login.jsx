@@ -78,7 +78,7 @@ export default function Login() {
             <label className="block text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Security Key</label>
             <button
               type="button"
-              onClick={() => alert("Password reset is currently placeholder. Please ask your administrator to reset it.")}
+              onClick={() => alert("Please ask your administrator to reset the Password.")}
               className="text-xs font-semibold text-sky-300 transition hover:text-sky-200"
             >
               Forgot Password?

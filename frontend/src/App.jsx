@@ -8,12 +8,11 @@ import Register from './pages/Register';
 import Teams from './pages/Teams';
 import Users from './pages/Users';
 import Dashboard from './pages/Dashboard';
-import Logs from './pages/Logs';
+import AuditLogs from './pages/AuditLogs';
 import Alerts from './pages/Alerts';
 import Incidents from './pages/Incidents';
-import ThreatIntel from './pages/ThreatIntel';
-import Assets from './pages/Assets';
-import Reports from './pages/Reports';
+import Threats from './pages/Threats';
+import Vulnerabilities from './pages/Vulnerabilities';
 
 function PublicRoute({ children }) {
   const { user, loading } = useAuth();
@@ -67,14 +66,6 @@ function App() {
             }
           />
           <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Navigate to="/dashboard" replace />
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/dashboard"
             element={
               <ProtectedRoute>
@@ -83,50 +74,10 @@ function App() {
             }
           />
           <Route
-            path="/logs"
+            path="/"
             element={
               <ProtectedRoute>
-                <Logs />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/alerts"
-            element={
-              <ProtectedRoute>
-                <Alerts />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/incidents"
-            element={
-              <ProtectedRoute>
-                <Incidents />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/threat-intel"
-            element={
-              <ProtectedRoute>
-                <ThreatIntel />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/assets"
-            element={
-              <ProtectedRoute>
-                <Assets />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/reports"
-            element={
-              <ProtectedRoute>
-                <Reports />
+                <Navigate to="/dashboard" replace />
               </ProtectedRoute>
             }
           />
@@ -143,6 +94,50 @@ function App() {
             element={
               <ProtectedRoute>
                 <Teams />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/audit-logs"
+            element={
+              <ProtectedRoute>
+                <AuditLogs />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/incidents"
+            element={
+              <ProtectedRoute>
+                <Incidents />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/threats"
+            element={
+              <ProtectedRoute>
+                <Threats />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/alerts"
+            element={
+              <ProtectedRoute>
+                <Alerts />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/vulnerabilities"
+            element={
+              <ProtectedRoute>
+                <Vulnerabilities />
               </ProtectedRoute>
             }
           />

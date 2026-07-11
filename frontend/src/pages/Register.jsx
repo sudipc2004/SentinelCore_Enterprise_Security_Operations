@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import AuthLayout from '../layouts/AuthLayout';
 import { User, Mail, Lock, Briefcase, ShieldAlert, AlertTriangle } from 'lucide-react';
 
+const REGISTRATION_ROLES = ['VIEWER', 'ANALYST'];
+
 export default function Register() {
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -48,6 +50,10 @@ export default function Register() {
     e.preventDefault();
     setError('');
     if (!validate()) return;
+    if (!REGISTRATION_ROLES.includes(role)) {
+      setError('Only analyst and viewer accounts can be registered.');
+      return;
+    }
 
     setLoading(true);
     try {
@@ -104,15 +110,21 @@ export default function Register() {
         <div>
           <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Department</label>
           <div className="relative">
-            <Briefcase className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-            <input
-              type="text"
+            <Briefcase className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+            <select
               value={department}
               onChange={(e) => setDepartment(e.target.value)}
-              placeholder="Security Operations"
-              className="glass-input w-full px-4 py-3 pl-11 text-sm"
+              className="glass-input w-full appearance-none cursor-pointer bg-[#0b1220] px-4 py-3 pl-11 text-sm text-white"
               disabled={loading}
-            />
+            >
+              <option value="">Select Department</option>
+              <option value="Developer">Developer</option>
+              <option value="IT Support">IT Support</option>
+              <option value="QA">QA</option>
+              <option value="HR">HR</option>
+              <option value="Finance">Finance</option>
+              <option value="Sales&Marketing">Sales & Marketing</option>
+            </select>
           </div>
         </div>
 
@@ -126,9 +138,9 @@ export default function Register() {
               className="glass-input w-full appearance-none cursor-pointer bg-[#0b1220] px-4 py-3 pl-11 text-sm text-white"
               disabled={loading}
             >
-              <option value="VIEWER">VIEWER</option>
-              <option value="ANALYST">ANALYST</option>
-              <option value="ADMIN">ADMIN</option>
+              {REGISTRATION_ROLES.map((item) => (
+                <option key={item} value={item}>{item}</option>
+              ))}
             </select>
           </div>
         </div>
@@ -141,7 +153,7 @@ export default function Register() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder="Password"
               className="glass-input w-full px-4 py-3 pl-11 text-sm"
               disabled={loading}
             />

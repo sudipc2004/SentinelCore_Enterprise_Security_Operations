@@ -11,12 +11,12 @@ export default function Users() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
+
   // Search & Filter States
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [deptFilter, setDeptFilter] = useState('');
-  
+
   // Pagination States
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
@@ -27,7 +27,7 @@ export default function Users() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState('ADD'); // ADD or EDIT
   const [selectedUser, setSelectedUser] = useState(null);
-  
+
   // Form States
   const [formData, setFormData] = useState({
     name: '',
@@ -92,6 +92,7 @@ export default function Users() {
       role: 'VIEWER',
       department: '',
     });
+    setSelectedUser(null);
     setFormError('');
     setFormSuccess('');
     setModalType('ADD');
@@ -126,7 +127,7 @@ export default function Users() {
     try {
       if (modalType === 'ADD') {
         if (!formData.password) {
-        setFormError('Password is required for new users');
+          setFormError('Password is required for new users');
           return;
         }
         await axios.post('/api/users', formData);
@@ -174,7 +175,7 @@ export default function Users() {
             <span className="sc-badge border-sky-500/20 bg-sky-500/10 text-sky-300">User directory</span>
             <span className="sc-badge border-white/10 bg-white/5 text-slate-300">RBAC managed</span>
           </div>
-          <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">User Management</h1>
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-white sm:text-2xl">User Management</h1>
           <p className="mt-2 max-w-3xl text-sm text-slate-400">Manage users, roles, status, and departments without changing the underlying workflow.</p>
         </div>
         {isAdmin && (
@@ -215,16 +216,22 @@ export default function Users() {
           </div>
           <div>
             <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Department</label>
-            <input
-              type="text"
-              placeholder="e.g. Operations"
+            <select
               value={deptFilter}
               onChange={(e) => setDeptFilter(e.target.value)}
-              className="glass-input w-full px-4 py-3 text-sm"
-            />
+              className="glass-input w-full cursor-pointer bg-[#0b1220] px-4 py-3 text-sm text-white"
+            >
+                  <option value="">All Departments</option>              
+                  <option value="Developer">Developer</option>               
+                  <option value="IT Support">IT Support</option>               
+                  <option value="QA">QA</option>               
+                  <option value="HR">HR</option>               
+                  <option value="Finance">Finance</option>               
+                  <option value="Sales&Marketing">Sales & Marketing</option>             
+                </select>
           </div>
           <div className="flex gap-2">
-            <button type="submit" className="sc-button-secondary flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.22em]">
+            <button type="submit" className="applyFilter sc-button-secondary flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.22em]">
               Apply Filter
             </button>
             <button type="button" onClick={handleResetFilters} className="sc-button-danger px-4 py-3 text-xs font-semibold uppercase tracking-[0.22em]">
@@ -268,13 +275,12 @@ export default function Users() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-bold font-mono tracking-[0.16em] ${
-                        item.role === 'ADMIN'
+                      <span className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-bold font-mono tracking-[0.16em] ${item.role === 'ADMIN'
                           ? 'border-red-500/20 bg-red-500/10 text-red-300'
                           : item.role === 'ANALYST'
-                          ? 'border-sky-500/20 bg-sky-500/10 text-sky-300'
-                          : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300'
-                      }`}>
+                            ? 'border-sky-500/20 bg-sky-500/10 text-sky-300'
+                            : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300'
+                        }`}>
                         {item.role}
                       </span>
                     </td>
@@ -283,11 +289,10 @@ export default function Users() {
                       <button
                         onClick={() => handleToggleStatus(item)}
                         disabled={!isAdmin}
-                        className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-bold font-mono tracking-[0.16em] transition ${
-                          item.status === 'ACTIVE'
+                        className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-bold font-mono tracking-[0.16em] transition ${item.status === 'ACTIVE'
                             ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20'
                             : 'border-red-500/20 bg-red-500/10 text-red-300 hover:bg-red-500/20'
-                        } ${!isAdmin ? 'cursor-default opacity-70' : 'cursor-pointer'}`}
+                          } ${!isAdmin ? 'cursor-default opacity-70' : 'cursor-pointer'}`}
                       >
                         <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${item.status === 'ACTIVE' ? 'bg-emerald-400' : 'bg-red-400'}`}></span>
                         {item.status}
@@ -370,7 +375,7 @@ export default function Users() {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="John Doe"
+                  placeholder="Enter Name"
                   className="glass-input w-full px-4 py-3 text-xs"
                 />
               </div>
@@ -381,20 +386,26 @@ export default function Users() {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="user@sentinelcore.io"
+                  placeholder="user@sentinelcore.in"
                   className="glass-input w-full px-4 py-3 text-xs"
                 />
               </div>
 
               <div>
                 <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">Department</label>
-                <input
-                  type="text"
-                  value={formData.department}
-                  onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                  placeholder="SOC Operations"
-                  className="glass-input w-full px-4 py-3 text-xs"
-                />
+                <select
+                    value={formData.department}
+                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                    className="glass-input w-full px-4 py-3 text-xs"
+                  >
+                    <option value="">All Departments</option>
+                    <option value="Developer">Developer</option>
+                    <option value="IT Support">IT Support</option>
+                    <option value="QA">QA</option>
+                    <option value="HR">HR</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Sales&Marketing">Sales & Marketing</option>
+                  </select>
               </div>
 
               <div>
@@ -406,7 +417,9 @@ export default function Users() {
                 >
                   <option value="VIEWER">VIEWER (Read-Only)</option>
                   <option value="ANALYST">ANALYST (Reviewer)</option>
-                  <option value="ADMIN">ADMIN (Full Access)</option>
+                  {modalType === 'EDIT' && selectedUser?.role === 'ADMIN' && (
+                    <option value="ADMIN">ADMIN (Primary Account)</option>
+                  )}
                 </select>
               </div>
 
@@ -418,7 +431,7 @@ export default function Users() {
                   type="password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  placeholder="••••••••"
+                  placeholder="Password"
                   className="glass-input w-full px-4 py-3 text-xs"
                 />
               </div>
@@ -443,7 +456,7 @@ export default function Users() {
               <AlertTriangle className="mx-auto mb-4 h-12 w-12 text-red-300" />
               <h3 className="mb-2 text-lg font-bold text-white">Delete User?</h3>
               <p className="mb-6 text-xs leading-relaxed text-slate-400 font-mono">
-                Confirm deletion of <span className="font-semibold text-white">{userToDelete.name}</span> ({userToDelete.email}). This action cannot be undone.
+                Confirm deletion of <span className="font-semibold text-white">{userToDelete.name}</span> ({userToDelete.email}). This action can't be undone.
               </p>
               <div className="flex gap-2">
                 <button onClick={() => setUserToDelete(null)} className="sc-button-secondary flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.24em]">

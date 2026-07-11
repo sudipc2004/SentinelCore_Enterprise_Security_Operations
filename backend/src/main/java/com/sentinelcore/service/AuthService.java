@@ -44,6 +44,9 @@ public class AuthService {
         }
 
         Role role = registerRequest.getRole() == null ? Role.VIEWER : registerRequest.getRole();
+        if (role == Role.ADMIN) {
+            throw new BadRequestException("Admin accounts cannot be created through registration.");
+        }
 
         User user = User.builder()
                 .name(registerRequest.getName())
