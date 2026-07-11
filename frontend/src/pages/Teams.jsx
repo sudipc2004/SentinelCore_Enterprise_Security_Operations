@@ -178,7 +178,7 @@ export default function Teams() {
       </div>
 
       <div className="sc-panel p-6">
-        <form onSubmit={handleSearchSubmit} className="flex flex-col gap-4 lg:flex-row">
+        <form onSubmit={handleSearchSubmit} className="flex flex-col gap-4 sm:flex-row">
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
             <input
