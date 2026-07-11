@@ -35,11 +35,13 @@ public class AuditLogController {
         Pageable pageable = PageRequest.of(page, size, sort);
 
         Role role = userPrincipal.getUser().getRole();
-        if (role == Role.ADMIN) {
+        if (role == Role.ADMIN || role == Role.ANALYST) {
             return ResponseEntity.ok(auditLogService.getAllLogs(pageable));
-        } else if (role == Role.ANALYST) {
-            return ResponseEntity.ok(auditLogService.getUserLogs(userPrincipal.getUser().getId(), pageable));
-        } else {
+        }
+        //  else if (role == Role.ANALYST) {
+        //      return ResponseEntity.ok(auditLogService.getUserLogs(userPrincipal.getUser().getId(), pageable));
+        // } 
+        else {
             return ResponseEntity.status(403).build();
         }
     }
