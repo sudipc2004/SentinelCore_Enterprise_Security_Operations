@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { AlertTriangle, Clock, Network, Siren, UserCheck, Users } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import {
   AlertTriangle,
   Network,
@@ -106,9 +108,11 @@ function SeverityBadge({ severity }) {
 
 // ─── Main Dashboard ──────────────────────────────────────────────────────────
 export default function Dashboard() {
+  const { user: currentUser } = useAuth();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const canWorkIncidents = currentUser?.role === 'ADMIN' || currentUser?.role === 'ANALYST';
 
   // Chart data — uses backend data when available, mock otherwise
   const [trendData, setTrendData] = useState(MOCK_TREND);
@@ -228,6 +232,9 @@ export default function Dashboard() {
         {/* MTTR */}
         <div className="sc-card flex min-h-36 items-center justify-between p-6">
           <div>
+            <p className="sc-text-kicker">Open incidents</p>
+            <h3 className="mt-2">
+              <span className="text-3xl font-bold text-white">{stats?.openIncidents ?? 0}</span>
             <p className="sc-text-kicker">Avg MTTR</p>
             <h3 className="mt-2 text-3xl font-bold text-amber-400">
               {stats?.avgMttrHours != null ? `${stats.avgMttrHours}h` : '—'}
@@ -235,6 +242,7 @@ export default function Dashboard() {
             <p className="mt-1 text-xs text-slate-500">mean time to resolve</p>
           </div>
           <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-3 text-amber-300">
+            <Siren className="h-6 w-6" />
             <Clock className="h-6 w-6" />
           </div>
         </div>
@@ -438,6 +446,50 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {canWorkIncidents && (
+        <div className="sc-panel p-6">
+          <div className="flex flex-col gap-2 border-b border-white/8 pb-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-lg font-bold text-white">My Assigned Incidents</h2>
+              <p className="mt-1 text-xs font-mono text-slate-400">Open investigations assigned to your account.</p>
+            </div>
+            <span className="sc-badge border-amber-500/20 bg-amber-500/10 text-amber-300">
+              {stats?.myAssignedIncidentCount ?? 0} Active
+            </span>
+          </div>
+
+          {stats?.myAssignedIncidents?.length > 0 ? (
+            <div className="mt-4 grid grid-cols-1 gap-3 xl:grid-cols-2">
+              {stats.myAssignedIncidents.map((incident) => (
+                <div key={incident.id} className="rounded-2xl border border-white/8 bg-[#0b1220]/70 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-white">{incident.title}</p>
+                      <p className="mt-1 text-[10px] font-mono text-slate-400">{incident.category || 'Uncategorized'} / {incident.source || 'Manual'}</p>
+                    </div>
+                    <span className="rounded-full border border-red-500/20 bg-red-500/10 px-2.5 py-1 text-[10px] font-bold text-red-300">
+                      {incident.priority}
+                    </span>
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center gap-3 text-[10px] font-mono text-slate-400">
+                    <span>Status: <span className="text-slate-200">{incident.status}</span></span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3.5 w-3.5" />
+                      {incident.dueAt ? new Date(incident.dueAt).toLocaleString() : 'No SLA'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-4 rounded-2xl border border-white/8 bg-white/5 p-6 text-center">
+              <Siren className="mx-auto mb-2 h-7 w-7 text-slate-500" />
+              <p className="text-xs font-mono text-slate-400">No active incidents are assigned to you.</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

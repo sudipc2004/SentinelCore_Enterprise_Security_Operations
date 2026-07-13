@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import { Search, UserPlus, Edit2, Trash2, Briefcase, Filter, X, ArrowLeft, ArrowRight, Check, AlertTriangle, ShieldCheck } from 'lucide-react';
+import "../index.css"
 
 export default function Users() {
   const { user: currentUser } = useAuth();
@@ -193,7 +194,7 @@ export default function Users() {
           <p className="mt-2 max-w-3xl text-sm text-slate-400">Manage users, roles, status, and departments without changing the underlying workflow.</p>
         </div>
         {isAdmin && (
-          <button onClick={handleOpenAddModal} className="sc-button-primary px-4 py-3 text-sm font-semibold">
+          <button onClick={handleOpenAddModal} className="c-p sc-button-primary px-4 py-3 text-sm font-semibold">
             <UserPlus className="h-4 w-4" />
             <span>Add User</span>
           </button>
@@ -244,11 +245,11 @@ export default function Users() {
               <option value="Sales&Marketing">Sales & Marketing</option>
             </select>
           </div>
-          <div className="flex flex-wrap gap-2 w-full">
-            <button type="submit" className="applyFilter sc-button-secondary flex-1 cursor-pointer px-3 py-3 text-xs font-semibold uppercase tracking-[0.12em] whitespace-nowrap">
+          <div className="flex gap-2">
+            <button type="submit" className="c-p applyFilter sc-button-secondary flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.22em]">
               Apply Filter
             </button>
-            <button type="button" onClick={handleResetFilters} className="sc-button-danger flex-1 cursor-pointer px-3 py-3 text-xs font-semibold uppercase tracking-[0.12em] whitespace-nowrap">
+            <button type="button" onClick={handleResetFilters} className="c-p sc-button-danger px-4 py-3 text-xs font-semibold uppercase tracking-[0.22em]">
               Reset
             </button>
           </div>
@@ -316,10 +317,10 @@ export default function Users() {
                     <td className="px-6 py-4 text-right space-x-2">
                       {isAdmin ? (
                         <>
-                          <button onClick={() => handleOpenEditModal(item)} className="sc-button-secondary p-2" title="Edit User">
+                          <button onClick={() => handleOpenEditModal(item)} className="c-p sc-button-secondary p-2" title="Edit User">
                             <Edit2 className="h-3.5 w-3.5" />
                           </button>
-                          <button onClick={() => setUserToDelete(item)} className="sc-button-danger p-2" title="Delete User">
+                          <button onClick={() => setUserToDelete(item)} className="c-p sc-button-danger p-2" title="Delete User">
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
                         </>
