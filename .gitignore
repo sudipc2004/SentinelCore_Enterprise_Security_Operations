@@ -1,0 +1,25 @@
+# ── OS & Editor ────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.suo
+*.user
+
+# ── Frontend build output ──────────────────────────────────────
+frontend/dist/
+frontend/node_modules/
+
+# ── Backend build output ───────────────────────────────────────
+backend/build/
+backend/.gradle/
+backend/bin/
+
+# ── Dev environment ────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── Private developer notes (never push to GitHub) ────────────
+DEV_NOTES.md
+CHANGELOG_PRIVATE.md

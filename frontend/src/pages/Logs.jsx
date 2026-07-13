@@ -1,34 +1,84 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
-import { Search, Upload, Trash2, Filter, AlertTriangle, ShieldCheck, FileText, CheckCircle2, X } from 'lucide-react';
+import {
+  Search,
+  Upload,
+  Trash2,
+  Filter,
+  AlertTriangle,
+  ShieldCheck,
+  FileText,
+  CheckCircle2,
+  X,
+  Calendar,
+  Bookmark,
+  BookmarkPlus,
+  ChevronDown,
+  ChevronUp,
+} from 'lucide-react';
+
+// ─── Severity chip config (maps to riskScore ranges) ────────────────────────
+const SEVERITY_CHIPS = [
+  { label: 'All', value: '' },
+  { label: 'Critical', value: 'CRITICAL', min: 0.85, color: 'border-red-500/40 bg-red-500/10 text-red-300' },
+  { label: 'High', value: 'HIGH', min: 0.65, max: 0.85, color: 'border-amber-500/40 bg-amber-500/10 text-amber-300' },
+  { label: 'Medium', value: 'MEDIUM', min: 0.35, max: 0.65, color: 'border-sky-500/40 bg-sky-500/10 text-sky-300' },
+  { label: 'Low', value: 'LOW', max: 0.35, color: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300' },
+];
+
+const SAVED_QUERIES_KEY = 'sc_saved_log_queries';
+
+function loadSavedQueries() {
+  try {
+    return JSON.parse(localStorage.getItem(SAVED_QUERIES_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function persistSavedQueries(queries) {
+  localStorage.setItem(SAVED_QUERIES_KEY, JSON.stringify(queries));
+}
 
 export default function Logs() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
-  // Search / Filters
+
+  // ─── Search / Filters ────────────────────────────────────────────────────
   const [search, setSearch] = useState('');
   const [systemType, setSystemType] = useState('');
   const [isAnomaly, setIsAnomaly] = useState('');
-  
-  // File Upload State
+  const [severity, setSeverity] = useState('');       // severity chip selection
+  const [startDate, setStartDate] = useState('');      // datetime-local value
+  const [endDate, setEndDate] = useState('');          // datetime-local value
+  const [showDatePanel, setShowDatePanel] = useState(false);
+
+  // ─── File Upload ─────────────────────────────────────────────────────────
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadType, setUploadType] = useState('WINDOWS');
   const [uploadSuccess, setUploadSuccess] = useState('');
   const [uploadError, setUploadError] = useState('');
   const [uploading, setUploading] = useState(false);
 
-  // Selected Log Modal Detail
+  // ─── Log detail modal ────────────────────────────────────────────────────
   const [selectedLog, setSelectedLog] = useState(null);
 
-  const fetchLogs = async () => {
+  // ─── Saved queries ───────────────────────────────────────────────────────
+  const [savedQueries, setSavedQueries] = useState(loadSavedQueries);
+  const [queryName, setQueryName] = useState('');
+  const [showSavedPanel, setShowSavedPanel] = useState(false);
+
+  // ─── Fetch ───────────────────────────────────────────────────────────────
+  const fetchLogs = useCallback(async () => {
     setLoading(true);
     try {
       const params = {};
       if (systemType) params.systemType = systemType;
       if (isAnomaly) params.isAnomaly = isAnomaly === 'true';
       if (search) params.search = search;
+      if (startDate) params.startDate = new Date(startDate).toISOString();
+      if (endDate)   params.endDate   = new Date(endDate).toISOString();
 
       const response = await axios.get('/api/logs', { params });
       setLogs(response.data);
@@ -38,11 +88,24 @@ export default function Logs() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [systemType, isAnomaly, search, startDate, endDate]);
 
   useEffect(() => {
     fetchLogs();
-  }, [systemType, isAnomaly]);
+  }, [systemType, isAnomaly]);   // auto-fetch on dropdown change (same as original)
+
+  // ─── Derived: severity filter applied client-side ────────────────────────
+  const displayedLogs = React.useMemo(() => {
+    if (!severity) return logs;
+    const chip = SEVERITY_CHIPS.find((c) => c.value === severity);
+    if (!chip) return logs;
+    return logs.filter((log) => {
+      const rs = log.riskScore ?? 0;
+      if (chip.min !== undefined && rs < chip.min) return false;
+      if (chip.max !== undefined && rs >= chip.max) return false;
+      return true;
+    });
+  }, [logs, severity]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -53,9 +116,13 @@ export default function Logs() {
     setSearch('');
     setSystemType('');
     setIsAnomaly('');
+    setSeverity('');
+    setStartDate('');
+    setEndDate('');
     fetchLogs();
   };
 
+  // ─── File upload handlers (unchanged) ────────────────────────────────────
   const handleFileChange = (e) => {
     setSelectedFile(e.target.files[0]);
     setUploadSuccess('');
@@ -68,21 +135,18 @@ export default function Logs() {
       setUploadError('Please select a file to ingest.');
       return;
     }
-
     const formData = new FormData();
     formData.append('file', selectedFile);
     formData.append('systemType', uploadType);
-
     setUploading(true);
     setUploadError('');
     setUploadSuccess('');
     try {
       const response = await axios.post('/api/logs/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
       setUploadSuccess(response.data.message || 'Log file ingested successfully.');
       setSelectedFile(null);
-      // Reset input element
       document.getElementById('log-file-input').value = '';
       fetchLogs();
     } catch (err) {
@@ -92,28 +156,149 @@ export default function Logs() {
     }
   };
 
+  // ─── Delete log (unchanged) ───────────────────────────────────────────────
   const handleDeleteLog = async (id, e) => {
     e.stopPropagation();
     if (!window.confirm('Delete this log entry?')) return;
     try {
       await axios.delete(`/api/logs/${id}`);
       fetchLogs();
-    } catch (err) {
+    } catch {
       alert('Failed to delete log.');
     }
   };
 
+  // ─── Saved queries CRUD ──────────────────────────────────────────────────
+  const handleSaveQuery = () => {
+    const name = queryName.trim() || `Query ${savedQueries.length + 1}`;
+    const newQuery = {
+      id: Date.now(),
+      name,
+      filters: { search, systemType, isAnomaly, severity, startDate, endDate },
+    };
+    const updated = [newQuery, ...savedQueries].slice(0, 20);
+    setSavedQueries(updated);
+    persistSavedQueries(updated);
+    setQueryName('');
+  };
+
+  const handleLoadQuery = (q) => {
+    const { search: s, systemType: st, isAnomaly: ia, severity: sv, startDate: sd, endDate: ed } = q.filters;
+    setSearch(s ?? '');
+    setSystemType(st ?? '');
+    setIsAnomaly(ia ?? '');
+    setSeverity(sv ?? '');
+    setStartDate(sd ?? '');
+    setEndDate(ed ?? '');
+    setShowSavedPanel(false);
+  };
+
+  const handleDeleteQuery = (id) => {
+    const updated = savedQueries.filter((q) => q.id !== id);
+    setSavedQueries(updated);
+    persistSavedQueries(updated);
+  };
+
+  // ─── Active filter count ──────────────────────────────────────────────────
+  const activeFilterCount = [search, systemType, isAnomaly, severity, startDate, endDate].filter(Boolean).length;
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-extrabold text-white tracking-wide">Log Management</h1>
-        <p className="text-sm text-gray-400 mt-1 font-mono">Collect, ingest, search, and analyze log files from Windows, Linux, network firewalls, and servers</p>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-extrabold text-white tracking-wide">Log Management</h1>
+          <p className="text-sm text-gray-400 mt-1 font-mono">
+            Collect, ingest, search, and analyze log files from Windows, Linux, network firewalls, and servers
+          </p>
+        </div>
+        {/* Saved Queries toggle */}
+        <button
+          onClick={() => setShowSavedPanel((v) => !v)}
+          className={`flex items-center gap-2 rounded-lg border px-4 py-2.5 text-xs font-mono font-semibold transition cursor-pointer ${
+            showSavedPanel
+              ? 'border-sky-500/40 bg-sky-500/10 text-sky-300'
+              : 'border-dark-border bg-slate-800 text-gray-300 hover:bg-slate-700 hover:text-white'
+          }`}
+        >
+          <Bookmark className="w-3.5 h-3.5" />
+          Saved Queries
+          {savedQueries.length > 0 && (
+            <span className="rounded-full bg-sky-500/20 px-1.5 py-0.5 text-[9px] text-sky-300 font-bold">
+              {savedQueries.length}
+            </span>
+          )}
+        </button>
       </div>
+
+      {/* Saved Queries Panel */}
+      {showSavedPanel && (
+        <div className="glass-card border border-dark-border p-5">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-bold text-white flex items-center gap-2">
+              <BookmarkPlus className="w-4 h-4 text-sky-400" />
+              Saved Filter Presets
+            </h2>
+            <button onClick={() => setShowSavedPanel(false)} className="text-gray-400 hover:text-white cursor-pointer">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Save current filters */}
+          <div className="flex gap-2 mb-4">
+            <input
+              type="text"
+              value={queryName}
+              onChange={(e) => setQueryName(e.target.value)}
+              placeholder="Query name (optional)"
+              className="flex-1 px-3 py-2 rounded-lg glass-input text-xs"
+            />
+            <button
+              onClick={handleSaveQuery}
+              disabled={activeFilterCount === 0}
+              className="flex items-center gap-1.5 bg-primary text-black font-semibold text-xs px-4 py-2 rounded-lg hover:bg-primary-hover transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            >
+              <BookmarkPlus className="w-3.5 h-3.5" />
+              Save Current
+            </button>
+          </div>
+
+          {savedQueries.length === 0 ? (
+            <p className="text-xs font-mono text-gray-500 text-center py-4">
+              No saved queries yet. Apply filters then click Save Current.
+            </p>
+          ) : (
+            <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+              {savedQueries.map((q) => (
+                <div
+                  key={q.id}
+                  className="flex items-center justify-between rounded-xl border border-dark-border bg-white/3 px-3 py-2 text-xs font-mono"
+                >
+                  <button
+                    onClick={() => handleLoadQuery(q)}
+                    className="flex-1 text-left text-slate-200 hover:text-sky-300 transition cursor-pointer truncate"
+                  >
+                    {q.name}
+                    <span className="ml-2 text-[10px] text-gray-600">
+                      {Object.values(q.filters).filter(Boolean).length} filters
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => handleDeleteQuery(q.id)}
+                    className="ml-2 text-red-400 hover:text-red-300 p-1 hover:bg-red-500/10 rounded cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Main Grid: Upload & Filters */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Ingest Panel */}
+        {/* Ingest Panel (unchanged from original) */}
         <div className="glass-card p-6 border border-dark-border lg:col-span-1 h-fit">
           <h2 className="text-md font-bold text-white mb-4 flex items-center space-x-2">
             <Upload className="w-5 h-5 text-primary" />
@@ -134,7 +319,9 @@ export default function Logs() {
             )}
 
             <div>
-              <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-2">Log Origin System</label>
+              <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-2">
+                Log Origin System
+              </label>
               <select
                 value={uploadType}
                 onChange={(e) => setUploadType(e.target.value)}
@@ -152,7 +339,9 @@ export default function Logs() {
             </div>
 
             <div>
-              <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-2">Select Log File (.log, .txt)</label>
+              <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-2">
+                Select Log File (.log, .txt)
+              </label>
               <input
                 id="log-file-input"
                 type="file"
@@ -169,7 +358,7 @@ export default function Logs() {
             >
               {uploading ? (
                 <>
-                  <div className="w-3.5 h-3.5 border-2 border-black/25 border-t-black rounded-full animate-spin"></div>
+                  <div className="w-3.5 h-3.5 border-2 border-black/25 border-t-black rounded-full animate-spin" />
                   <span>Uploading...</span>
                 </>
               ) : (
@@ -182,16 +371,25 @@ export default function Logs() {
           </form>
         </div>
 
-        {/* Filter Panel */}
-        <div className="glass-card p-6 border border-dark-border lg:col-span-2">
-          <h2 className="text-md font-bold text-white mb-4 flex items-center space-x-2">
+        {/* Filter Panel — enhanced */}
+        <div className="glass-card p-6 border border-dark-border lg:col-span-2 space-y-5">
+          <h2 className="text-md font-bold text-white flex items-center space-x-2">
             <Filter className="w-5 h-5 text-secondary" />
-            <span>Search & Filter</span>
+            <span>Search &amp; Filter</span>
+            {activeFilterCount > 0 && (
+              <span className="rounded-full bg-sky-500/20 px-1.5 py-0.5 text-[9px] text-sky-300 font-bold ml-1">
+                {activeFilterCount} active
+              </span>
+            )}
           </h2>
+
           <form onSubmit={handleSearchSubmit} className="space-y-4">
+            {/* Row 1: Search + System Type */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-2">Raw Data Search</label>
+                <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-2">
+                  Raw Data Search
+                </label>
                 <div className="relative">
                   <Search className="absolute left-3 top-3 w-4 h-4 text-gray-500" />
                   <input
@@ -204,7 +402,9 @@ export default function Logs() {
                 </div>
               </div>
               <div>
-                <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-2">System Type</label>
+                <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-2">
+                  System Type
+                </label>
                 <select
                   value={systemType}
                   onChange={(e) => setSystemType(e.target.value)}
@@ -223,9 +423,12 @@ export default function Logs() {
               </div>
             </div>
 
+            {/* Row 2: Anomaly + Date Range toggle */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-2">AI Anomaly Status</label>
+                <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-2">
+                  AI Anomaly Status
+                </label>
                 <select
                   value={isAnomaly}
                   onChange={(e) => setIsAnomaly(e.target.value)}
@@ -236,30 +439,114 @@ export default function Logs() {
                   <option value="false">Normal Logs Only</option>
                 </select>
               </div>
-              <div className="flex items-end space-x-2 pt-2 md:pt-0">
-                <button
-                  type="submit"
-                  className="flex-1 bg-slate-800 text-white border border-dark-border hover:bg-slate-700 text-xs py-2.5 px-4 rounded-lg transition font-mono uppercase tracking-wider cursor-pointer"
-                >
-                  Apply Filters
-                </button>
+
+              {/* Date range toggle button */}
+              <div className="flex items-end">
                 <button
                   type="button"
-                  onClick={handleResetFilters}
-                  className="bg-red-500/10 text-red-400 hover:bg-red-500/20 text-xs py-2.5 px-3 rounded-lg transition font-mono uppercase tracking-wider cursor-pointer"
+                  onClick={() => setShowDatePanel((v) => !v)}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg glass-input text-xs font-mono transition cursor-pointer ${
+                    startDate || endDate
+                      ? 'border-sky-500/50 text-sky-300'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
                 >
-                  Reset
+                  <span className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    {startDate || endDate
+                      ? `${startDate ? new Date(startDate).toLocaleDateString() : '—'} → ${endDate ? new Date(endDate).toLocaleDateString() : '—'}`
+                      : 'Date Range (all time)'}
+                  </span>
+                  {showDatePanel ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                 </button>
               </div>
+            </div>
+
+            {/* Date range inputs (collapsible) */}
+            {showDatePanel && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 rounded-xl border border-dark-border bg-slate-900/40 p-4">
+                <div>
+                  <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-2">
+                    From
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg glass-input text-xs text-gray-300 cursor-pointer"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-2">
+                    To
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg glass-input text-xs text-gray-300 cursor-pointer"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Severity chips */}
+            <div>
+              <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-2">
+                Severity Filter (Risk Score)
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {SEVERITY_CHIPS.map((chip) => (
+                  <button
+                    key={chip.value}
+                    type="button"
+                    onClick={() => setSeverity(chip.value)}
+                    className={`rounded-full border px-3 py-1 text-[10px] font-bold font-mono uppercase tracking-wider transition cursor-pointer ${
+                      severity === chip.value
+                        ? chip.color || 'border-blue-500/40 bg-blue-500/15 text-blue-300'
+                        : 'border-dark-border bg-white/3 text-gray-500 hover:border-white/15 hover:text-gray-300'
+                    }`}
+                  >
+                    {chip.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex items-center gap-2 pt-1 flex-wrap">
+              <button
+                type="submit"
+                className="flex-1 bg-slate-800 text-white border border-dark-border hover:bg-slate-700 text-xs py-2.5 px-4 rounded-lg transition font-mono uppercase tracking-wider cursor-pointer"
+              >
+                Apply Filters
+              </button>
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="bg-red-500/10 text-red-400 hover:bg-red-500/20 text-xs py-2.5 px-3 rounded-lg transition font-mono uppercase tracking-wider cursor-pointer"
+              >
+                Reset
+              </button>
             </div>
           </form>
         </div>
       </div>
 
-      {/* Logs Table / Ingestion Console */}
+      {/* Logs Table */}
       <div className="glass-card border border-dark-border overflow-hidden">
         <div className="p-4 border-b border-dark-border bg-slate-900/35 flex justify-between items-center">
-          <span className="text-xs font-mono font-semibold text-white">Ingested Security Logs ({logs.length})</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-mono font-semibold text-white">
+              Ingested Security Logs ({displayedLogs.length}
+              {displayedLogs.length !== logs.length && ` / ${logs.length}`})
+            </span>
+            {severity && (
+              <span className="sc-badge border-sky-500/20 bg-sky-500/10 text-sky-300">
+                {SEVERITY_CHIPS.find((c) => c.value === severity)?.label} severity
+              </span>
+            )}
+          </div>
           <button
             onClick={fetchLogs}
             className="text-[10px] font-mono bg-slate-800 hover:bg-slate-700 text-gray-300 px-3 py-1.5 rounded border border-dark-border transition cursor-pointer"
@@ -270,14 +557,16 @@ export default function Logs() {
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-24">
-            <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-4"></div>
+            <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-4" />
             <p className="text-xs font-mono text-gray-400">Syncing database directory...</p>
           </div>
-        ) : logs.length === 0 ? (
+        ) : displayedLogs.length === 0 ? (
           <div className="py-24 text-center">
             <AlertTriangle className="w-8 h-8 text-yellow-500 mx-auto mb-3 animate-pulse" />
             <p className="text-sm font-mono text-gray-400 mb-1">No logs found in this query.</p>
-            <p className="text-xs text-gray-500 font-mono">Upload a log file or send requests to trigger ingestion.</p>
+            <p className="text-xs text-gray-500 font-mono">
+              Upload a log file or send requests to trigger ingestion.
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -295,7 +584,7 @@ export default function Logs() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-dark-border/40 text-xs font-mono">
-                {logs.map((item) => (
+                {displayedLogs.map((item) => (
                   <tr
                     key={item.id}
                     onClick={() => setSelectedLog(item)}
@@ -327,7 +616,17 @@ export default function Logs() {
                       )}
                     </td>
                     <td className="py-4 px-6 font-bold">
-                      <span className={item.riskScore >= 0.75 ? 'text-red-400' : item.riskScore >= 0.45 ? 'text-amber-400' : 'text-emerald-400'}>
+                      <span
+                        className={
+                          item.riskScore >= 0.85
+                            ? 'text-red-400'
+                            : item.riskScore >= 0.65
+                            ? 'text-amber-400'
+                            : item.riskScore >= 0.35
+                            ? 'text-sky-400'
+                            : 'text-emerald-400'
+                        }
+                      >
                         {Math.round(item.riskScore * 100)}%
                       </span>
                     </td>
@@ -348,7 +647,7 @@ export default function Logs() {
         )}
       </div>
 
-      {/* Log Detail Dialog Modal */}
+      {/* Log Detail Modal (unchanged from original) */}
       {selectedLog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="w-full max-w-lg glass-card p-6 border border-dark-border relative animate-scale-up">
@@ -377,12 +676,16 @@ export default function Logs() {
                 <span className="font-bold text-primary">{selectedLog.systemType}</span>
               </div>
               <div className="flex border-b border-dark-border/40 py-2">
-                <span className="w-32 text-gray-500 uppercase">IP & Port:</span>
-                <span>{selectedLog.ipAddress} : {selectedLog.port} ({selectedLog.protocol})</span>
+                <span className="w-32 text-gray-500 uppercase">IP &amp; Port:</span>
+                <span>
+                  {selectedLog.ipAddress} : {selectedLog.port} ({selectedLog.protocol})
+                </span>
               </div>
               <div className="flex border-b border-dark-border/40 py-2">
                 <span className="w-32 text-gray-500 uppercase">Identity:</span>
-                <span>{selectedLog.userEmail} / {selectedLog.device}</span>
+                <span>
+                  {selectedLog.userEmail} / {selectedLog.device}
+                </span>
               </div>
               <div className="flex border-b border-dark-border/40 py-2">
                 <span className="w-32 text-gray-500 uppercase">Country:</span>
