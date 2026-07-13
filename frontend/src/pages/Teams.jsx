@@ -175,7 +175,7 @@ export default function Teams() {
           <p className="mt-2 max-w-3xl text-sm text-slate-400">Create teams, assign leads, and manage members using the same enterprise styling as the rest of the platform.</p>
         </div>
         {isAdmin && (
-          <button onClick={handleOpenAddModal} className="sc-button-primary px-4 py-3 text-sm font-semibold">
+          <button onClick={handleOpenAddModal} className="c-p sc-button-primary px-4 py-3 text-sm font-semibold">
             <Plus className="h-4 w-4" />
             <span>Create Team</span>
           </button>
@@ -194,7 +194,7 @@ export default function Teams() {
               className="glass-input w-full px-4 py-3 pl-11 text-sm"
             />
           </div>
-          <button type="submit" className="sc-button-secondary px-6 py-3 text-xs font-semibold uppercase tracking-[0.24em]">
+          <button type="submit" className="c-p sc-button-secondary px-6 py-3 text-xs font-semibold uppercase tracking-[0.24em]">
             Query
           </button>
         </form>
@@ -254,11 +254,11 @@ export default function Teams() {
                 </div>
                 {isAdmin && (
                   <div className="flex gap-2">
-                    <button onClick={() => handleOpenEditModal(activeTeam)} className="sc-button-secondary px-3 py-2 text-xs font-semibold">
+                    <button onClick={() => handleOpenEditModal(activeTeam)} className="c-p sc-button-secondary px-3 py-2 text-xs font-semibold">
                       <Edit2 className="h-3.5 w-3.5" />
                       <span>Edit</span>
                     </button>
-                    <button onClick={() => setTeamToDelete(activeTeam)} className="sc-button-danger px-3 py-2 text-xs font-semibold">
+                    <button onClick={() => setTeamToDelete(activeTeam)} className="c-p sc-button-danger px-3 py-2 text-xs font-semibold">
                       <Trash2 className="h-3.5 w-3.5" />
                       <span>Delete</span>
                     </button>
@@ -421,10 +421,10 @@ export default function Teams() {
               </div>
 
               <div className="flex gap-2 pt-2">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="sc-button-secondary flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.24em]">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="c-p sc-button-secondary flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.24em]">
                   Cancel
                 </button>
-                <button type="submit" className="sc-button-primary flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.24em]">
+                <button type="submit" className="c-p sc-button-primary flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.24em]">
                   Save Team
                 </button>
               </div>
@@ -443,10 +443,10 @@ export default function Teams() {
                 Confirm deletion of team <span className="font-semibold text-white">{teamToDelete.teamName}</span>. This removes members immediately. Action is irreversible.
               </p>
               <div className="flex gap-2">
-                <button onClick={() => setTeamToDelete(null)} className="sc-button-secondary flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.24em]">
+                <button onClick={() => setTeamToDelete(null)} className="c-p sc-button-secondary flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.24em]">
                   Cancel
                 </button>
-                <button onClick={handleDeleteTeam} className="sc-button-danger flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.24em]">
+                <button onClick={handleDeleteTeam} className="c-p sc-button-danger flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.24em]">
                   Delete
                 </button>
               </div>
