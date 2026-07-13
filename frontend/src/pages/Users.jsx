@@ -19,6 +19,9 @@ export default function Users() {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [deptFilter, setDeptFilter] = useState('');
+  const [appliedSearch, setAppliedSearch] = useState('');
+  const [appliedRole, setAppliedRole] = useState('');
+  const [appliedDept, setAppliedDept] = useState('');
 
   // Pagination States
   const [page, setPage] = useState(0);
@@ -54,9 +57,9 @@ export default function Users() {
         sortBy: 'createdAt',
         direction: 'desc'
       };
-      if (search) params.search = search;
-      if (roleFilter) params.role = roleFilter;
-      if (deptFilter) params.department = deptFilter;
+      if (appliedSearch) params.search = appliedSearch;
+      if (appliedRole) params.role = appliedRole;
+      if (appliedDept) params.department = appliedDept;
 
       const response = await axios.get('/api/users', { params });
       setUsers(response.data.content);
@@ -72,18 +75,23 @@ export default function Users() {
 
   useEffect(() => {
     fetchUsers();
-  }, [page, roleFilter, deptFilter]);
+  }, [page, appliedSearch, appliedRole, appliedDept]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     setPage(0);
-    fetchUsers();
+    setAppliedSearch(search);
+    setAppliedRole(roleFilter);
+    setAppliedDept(deptFilter);
   };
 
   const handleResetFilters = () => {
     setSearch('');
     setRoleFilter('');
     setDeptFilter('');
+    setAppliedSearch('');
+    setAppliedRole('');
+    setAppliedDept('');
     setPage(0);
   };
 
@@ -194,7 +202,7 @@ export default function Users() {
       </div>
 
       <div className="sc-panel p-6">
-        <form onSubmit={handleSearchSubmit} className="grid grid-cols-1 gap-4 md:grid-cols-4 md:items-end">
+        <form onSubmit={handleSearchSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 items-end">
           <div>
             <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Search users</label>
             <div className="relative">
@@ -228,14 +236,14 @@ export default function Users() {
               onChange={(e) => setDeptFilter(e.target.value)}
               className="glass-input w-full cursor-pointer bg-[#0b1220] px-4 py-3 text-sm text-white"
             >
-                  <option value="">All Departments</option>              
-                  <option value="Developer">Developer</option>               
-                  <option value="IT Support">IT Support</option>               
-                  <option value="QA">QA</option>               
-                  <option value="HR">HR</option>               
-                  <option value="Finance">Finance</option>               
-                  <option value="Sales&Marketing">Sales & Marketing</option>             
-                </select>
+              <option value="">All Departments</option>
+              <option value="Developer">Developer</option>
+              <option value="IT Support">IT Support</option>
+              <option value="QA">QA</option>
+              <option value="HR">HR</option>
+              <option value="Finance">Finance</option>
+              <option value="Sales&Marketing">Sales & Marketing</option>
+            </select>
           </div>
           <div className="flex gap-2">
             <button type="submit" className="c-p applyFilter sc-button-secondary flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.22em]">
@@ -283,10 +291,10 @@ export default function Users() {
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-bold font-mono tracking-[0.16em] ${item.role === 'ADMIN'
-                          ? 'border-red-500/20 bg-red-500/10 text-red-300'
-                          : item.role === 'ANALYST'
-                            ? 'border-sky-500/20 bg-sky-500/10 text-sky-300'
-                            : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300'
+                        ? 'border-red-500/20 bg-red-500/10 text-red-300'
+                        : item.role === 'ANALYST'
+                          ? 'border-sky-500/20 bg-sky-500/10 text-sky-300'
+                          : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300'
                         }`}>
                         {item.role}
                       </span>
@@ -297,8 +305,8 @@ export default function Users() {
                         onClick={() => handleToggleStatus(item)}
                         disabled={!isAdmin}
                         className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-bold font-mono tracking-[0.16em] transition ${item.status === 'ACTIVE'
-                            ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20'
-                            : 'border-red-500/20 bg-red-500/10 text-red-300 hover:bg-red-500/20'
+                          ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20'
+                          : 'border-red-500/20 bg-red-500/10 text-red-300 hover:bg-red-500/20'
                           } ${!isAdmin ? 'cursor-default opacity-70' : 'cursor-pointer'}`}
                       >
                         <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${item.status === 'ACTIVE' ? 'bg-emerald-400' : 'bg-red-400'}`}></span>
@@ -401,18 +409,18 @@ export default function Users() {
               <div>
                 <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">Department</label>
                 <select
-                    value={formData.department}
-                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                    className="glass-input w-full px-4 py-3 text-xs"
-                  >
-                    <option value="">All Departments</option>
-                    <option value="Developer">Developer</option>
-                    <option value="IT Support">IT Support</option>
-                    <option value="QA">QA</option>
-                    <option value="HR">HR</option>
-                    <option value="Finance">Finance</option>
-                    <option value="Sales&Marketing">Sales & Marketing</option>
-                  </select>
+                  value={formData.department}
+                  onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                  className="glass-input w-full px-4 py-3 text-xs"
+                >
+                  <option value="">All Departments</option>
+                  <option value="Developer">Developer</option>
+                  <option value="IT Support">IT Support</option>
+                  <option value="QA">QA</option>
+                  <option value="HR">HR</option>
+                  <option value="Finance">Finance</option>
+                  <option value="Sales&Marketing">Sales & Marketing</option>
+                </select>
               </div>
 
               <div>
