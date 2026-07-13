@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../components/Toast';
 import { Network, Plus, Edit2, Trash2, Users, Info, Search, X, AlertTriangle, Check } from 'lucide-react';
 
 export default function Teams() {
   const { user: currentUser } = useAuth();
+  const { showToast } = useToast();
   const isAdmin = currentUser?.role === 'ADMIN';
 
   // Team lists
@@ -119,9 +121,11 @@ export default function Teams() {
       if (modalType === 'ADD') {
         await axios.post('/api/teams', formData);
         setFormSuccess('Security Team created successfully!');
+        showToast({ type: 'success', message: 'Security team created successfully.' });
       } else {
         await axios.put(`/api/teams/${selectedTeam.id}`, formData);
         setFormSuccess('Security Team details updated!');
+        showToast({ type: 'success', message: 'Security team details updated.' });
       }
       setTimeout(() => {
         setIsModalOpen(false);
@@ -140,9 +144,10 @@ export default function Teams() {
         setActiveTeamId(null);
       }
       setTeamToDelete(null);
+      showToast({ type: 'success', message: 'Security team deleted successfully.' });
       fetchTeams();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to delete team.');
+      showToast({ type: 'error', message: err.response?.data?.message || 'Failed to delete team.' });
     }
   };
 
