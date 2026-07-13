@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import AuthLayout from '../layouts/AuthLayout';
+import { useToast } from '../components/Toast';
 import { Eye, EyeOff, Lock, Mail, AlertTriangle } from 'lucide-react';
 
 export default function Login() {
   const { login } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -38,9 +40,12 @@ export default function Login() {
     setLoading(true);
     try {
       await login(email, password);
+      showToast({ type: 'success', message: 'Successfully entered to SentinelCore...' });
       navigate('/');
     } catch (err) {
-      setError(err.message || 'Login failed. Please check your credentials.');
+      const message = err.message || 'Login failed. Please check your credentials.';
+      setError(message);
+      showToast({ type: 'error', message });
     } finally {
       setLoading(false);
     }
@@ -78,7 +83,7 @@ export default function Login() {
             <label className="block text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Security Key</label>
             <button
               type="button"
-              onClick={() => alert("Please ask your administrator to reset the Password.")}
+              onClick={() => showToast({ type: 'info', message: 'Please ask your administrator to reset the password.' })}
               className="text-xs font-semibold text-sky-300 transition hover:text-sky-200"
             >
               Forgot Password?
@@ -117,7 +122,7 @@ export default function Login() {
               <span>Logging in...</span>
             </>
           ) : (
-            <span>Sign In to Dashboard</span>
+            <span>Taking you to Dashboard</span>
           )}
         </button>
 

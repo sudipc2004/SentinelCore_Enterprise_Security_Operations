@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import axios from 'axios';
-
+import { useToast } from '../components/Toast';
 const AuthContext = createContext(null);
 
 export const useAuth = () => useContext(AuthContext);
@@ -9,6 +9,7 @@ export const useAuth = () => useContext(AuthContext);
 axios.defaults.baseURL = 'http://localhost:8080';
 
 export const AuthProvider = ({ children }) => {
+  const { showToast } = useToast();
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token') || null);
   const [loading, setLoading] = useState(true);
@@ -101,6 +102,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     setLoading(true);
+    
     try {
       // Call logout API to write the audit trail event
       await axios.post('/api/auth/logout');
@@ -109,6 +111,7 @@ export const AuthProvider = ({ children }) => {
     } finally {
       logoutLocal();
       setLoading(false);
+      showToast({ type: 'success', message: 'Successfully exited from SentinelCore...' });
     }
   };
 

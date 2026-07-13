@@ -2,12 +2,15 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import AuthLayout from '../layouts/AuthLayout';
+import { useToast } from '../components/Toast';
 import { User, Mail, Lock, Briefcase, ShieldAlert, AlertTriangle } from 'lucide-react';
+
 
 const REGISTRATION_ROLES = ['VIEWER', 'ANALYST'];
 
 export default function Register() {
   const { register } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -58,10 +61,12 @@ export default function Register() {
     setLoading(true);
     try {
       await register(name, email, password, role, department);
-      alert('Registration successful. Please log in.');
+      showToast({ type: 'success', message: 'Registration successful. Please log in.' });
       navigate('/login');
     } catch (err) {
-      setError(err.message || 'Registration failed. Please check inputs.');
+      const message = err.message || 'Registration failed. Please check inputs.';
+      setError(message);
+      showToast({ type: 'error', message });
     } finally {
       setLoading(false);
     }

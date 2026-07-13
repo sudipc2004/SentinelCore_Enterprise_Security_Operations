@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../components/Toast';
 import { Search, UserPlus, Edit2, Trash2, Briefcase, Filter, X, ArrowLeft, ArrowRight, Check, AlertTriangle, ShieldCheck } from 'lucide-react';
 
 export default function Users() {
   const { user: currentUser } = useAuth();
+  const { showToast } = useToast();
   const isAdmin = currentUser?.role === 'ADMIN';
 
   // Table Data States
@@ -140,9 +142,11 @@ export default function Users() {
         }
         await axios.post('/api/users', formData);
         setFormSuccess('User created successfully!');
+        showToast({ type: 'success', message: 'User created successfully.' });
       } else {
         await axios.put(`/api/users/${selectedUser.id}`, formData);
         setFormSuccess('User profile updated successfully!');
+        showToast({ type: 'success', message: 'User profile updated successfully.' });
       }
       setTimeout(() => {
         setIsModalOpen(false);
@@ -158,9 +162,10 @@ export default function Users() {
     const newStatus = user.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
     try {
       await axios.put(`/api/users/${user.id}/status`, { status: newStatus });
+      showToast({ type: 'success', message: `User status updated to ${newStatus}.` });
       fetchUsers();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to update status.');
+      showToast({ type: 'error', message: err.response?.data?.message || 'Failed to update status.' });
     }
   };
 
@@ -169,9 +174,10 @@ export default function Users() {
     try {
       await axios.delete(`/api/users/${userToDelete.id}`);
       setUserToDelete(null);
+      showToast({ type: 'success', message: 'User deleted successfully.' });
       fetchUsers();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to delete user.');
+      showToast({ type: 'error', message: err.response?.data?.message || 'Failed to delete user.' });
     }
   };
 
