@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { AlertTriangle, Clock, Network, Siren, UserCheck, Users } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import {
   AlertTriangle,
+  Clock,
   Network,
   ShieldAlert,
+  Siren,
   UserCheck,
   Users,
   Wifi,
   WifiOff,
   Activity,
-  Clock,
   TrendingUp,
   Zap,
 } from 'lucide-react';
@@ -233,10 +233,9 @@ export default function Dashboard() {
         <div className="sc-card flex min-h-36 items-center justify-between p-6">
           <div>
             <p className="sc-text-kicker">Open incidents</p>
-            <h3 className="mt-2">
-              <span className="text-3xl font-bold text-white">{stats?.openIncidents ?? 0}</span>
-            <p className="sc-text-kicker">Avg MTTR</p>
-            <h3 className="mt-2 text-3xl font-bold text-amber-400">
+            <h3 className="mt-2 text-3xl font-bold text-white">{stats?.openIncidents ?? 0}</h3>
+            <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.22em] text-slate-500">Avg MTTR</p>
+            <h3 className="mt-1 text-xl font-bold text-amber-400">
               {stats?.avgMttrHours != null ? `${stats.avgMttrHours}h` : '—'}
             </h3>
             <p className="mt-1 text-xs text-slate-500">mean time to resolve</p>
