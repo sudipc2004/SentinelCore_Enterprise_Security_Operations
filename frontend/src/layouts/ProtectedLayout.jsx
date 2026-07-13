@@ -21,6 +21,10 @@ import {
   Bug,
   Siren,
   X,
+  Server,
+  FileText,
+  BookMarked,
+  FileBarChart,
 } from 'lucide-react';
 
 export default function ProtectedLayout({ children }) {
@@ -83,11 +87,13 @@ export default function ProtectedLayout({ children }) {
     ...(user?.role === 'ADMIN' || user?.role === 'ANALYST'
       ? [{ name: 'Audit Logs', path: '/audit-logs', icon: ScrollText }]
       : []),
+    { name: 'Assets', path: '/assets', icon: Server },
+    { name: 'Log Explorer', path: '/logs', icon: FileText },
     { name: 'Incidents', path: '/incidents', icon: Siren },
-    { name: 'Threats Intel', path: '/threats', icon: Radar },
+    { name: 'Threat Intel', path: '/threat-intel', icon: Radar },
     { name: 'Vulnerabilities', path: '/vulnerabilities', icon: Bug },
     { name: 'Alerts', path: '/alerts', icon: BellRing },
-
+    { name: 'Reports', path: '/reports', icon: FileBarChart },
   ];
 
   const currentRoute = menuItems.find((item) => location.pathname === item.path) || { name: 'Command Center' };

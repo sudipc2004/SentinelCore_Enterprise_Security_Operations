@@ -14,6 +14,10 @@ import Alerts from './pages/Alerts';
 import Incidents from './pages/Incidents';
 import Threats from './pages/Threats';
 import Vulnerabilities from './pages/Vulnerabilities';
+import Assets from './pages/Assets';
+import Logs from './pages/Logs';
+import ThreatIntel from './pages/ThreatIntel';
+import Reports from './pages/Reports';
 
 function PublicRoute({ children }) {
   const { user, loading } = useAuth();
@@ -140,6 +144,38 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Vulnerabilities />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/assets"
+              element={
+                <ProtectedRoute>
+                  <Assets />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/logs"
+              element={
+                <ProtectedRoute>
+                  <Logs />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/threat-intel"
+              element={
+                <ProtectedRoute>
+                  <ThreatIntel />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/reports"
+              element={
+                <ProtectedRoute>
+                  <Reports />
                 </ProtectedRoute>
               }
             />
