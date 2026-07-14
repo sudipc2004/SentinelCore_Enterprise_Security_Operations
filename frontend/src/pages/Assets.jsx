@@ -33,6 +33,7 @@ const STATUS_FILTERS = ['ALL', 'ONLINE', 'OFFLINE'];
 
 export default function Assets() {
   const [assets, setAssets] = useState([]);
+  const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -46,6 +47,7 @@ export default function Assets() {
     os: 'Linux (Ubuntu 22.04)',
     criticality: 'CRITICAL',
     status: 'ONLINE',
+    ownerTeamId: '',
   });
   const [formError, setFormError] = useState('');
 
@@ -76,9 +78,21 @@ export default function Assets() {
     }
   };
 
+  const fetchTeams = async () => {
+    try {
+      const response = await axios.get('/api/teams');
+      setTeams(response.data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     fetchAssets();
+    fetchTeams();
   }, []);
+
+  const getTeamName = (teamId) => teams.find((team) => team.id === teamId)?.teamName || 'Unassigned';
 
   // ─── Derived: sorted & filtered list ──────────────────────────────────
   const displayedAssets = useMemo(() => {
@@ -132,6 +146,7 @@ export default function Assets() {
         os: 'Linux (Ubuntu 22.04)',
         criticality: 'CRITICAL',
         status: 'ONLINE',
+        ownerTeamId: '',
       });
       setShowAddForm(false);
       fetchAssets();
@@ -442,6 +457,10 @@ export default function Assets() {
                     <span className="truncate max-w-[120px]">{item.os}</span>
                   </div>
                   <div className="flex justify-between">
+                    <span className="text-gray-600">Owner team:</span>
+                    <span className="text-emerald-400">{getTeamName(item.ownerTeamId)}</span>
+                  </div>
+                  <div className="flex justify-between">
                     <span className="text-gray-600">Type:</span>
                     <span className="text-sky-400">{item.type}</span>
                   </div>
@@ -576,6 +595,22 @@ export default function Assets() {
                   placeholder="Windows Server 2022 / Linux (Debian 12)"
                   className="w-full px-3 py-2 rounded-lg glass-input text-xs"
                 />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-1">
+                  Owner Team
+                </label>
+                <select
+                  value={formData.ownerTeamId}
+                  onChange={(e) => setFormData({ ...formData, ownerTeamId: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg glass-input text-xs bg-slate-900 text-white cursor-pointer"
+                >
+                  <option value="">Unassigned</option>
+                  {teams.map((team) => (
+                    <option key={team.id} value={team.id}>{team.teamName}</option>
+                  ))}
+                </select>
               </div>
 
               <div className="flex space-x-2 pt-2">

@@ -247,6 +247,41 @@ export default function Dashboard() {
         </div>
       </div>
 
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="sc-card flex min-h-28 items-center justify-between p-5">
+          <div>
+            <p className="sc-text-kicker">Asset Inventory</p>
+            <h3 className="mt-2 text-2xl font-bold text-white">{stats?.totalAssets ?? 0}</h3>
+            <p className="mt-1 text-xs text-slate-500">{stats?.onlineAssets ?? 0} online assets</p>
+          </div>
+          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-emerald-300">
+            <Network className="h-5 w-5" />
+          </div>
+        </div>
+
+        <div className="sc-card flex min-h-28 items-center justify-between p-5">
+          <div>
+            <p className="sc-text-kicker">Log Management</p>
+            <h3 className="mt-2 text-2xl font-bold text-white">{stats?.totalLogs ?? 0}</h3>
+            <p className="mt-1 text-xs text-slate-500">{stats?.anomalyLogs ?? 0} anomaly records</p>
+          </div>
+          <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-3 text-amber-300">
+            <Activity className="h-5 w-5" />
+          </div>
+        </div>
+
+        <div className="sc-card flex min-h-28 items-center justify-between p-5">
+          <div>
+            <p className="sc-text-kicker">Threat Intel</p>
+            <h3 className="mt-2 text-2xl font-bold text-white">{stats?.totalThreatIntel ?? 0}</h3>
+            <p className="mt-1 text-xs text-slate-500">active IOC indicators</p>
+          </div>
+          <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-3 text-red-300">
+            <ShieldAlert className="h-5 w-5" />
+          </div>
+        </div>
+      </div>
+
       {/* ── Charts row ──────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         {/* 7-day Incident & Alert Trend — Area chart */}

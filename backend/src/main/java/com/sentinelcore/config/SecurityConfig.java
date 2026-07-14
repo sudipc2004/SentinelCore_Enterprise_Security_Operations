@@ -64,6 +64,27 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/teams/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/teams/**").hasRole("ADMIN")
 
+                // Incident Management authorization rules
+                .requestMatchers(HttpMethod.GET, "/api/incidents/**").hasAnyRole("ADMIN", "ANALYST", "VIEWER")
+                .requestMatchers(HttpMethod.POST, "/api/incidents/**").hasAnyRole("ADMIN", "ANALYST")
+                .requestMatchers(HttpMethod.PUT, "/api/incidents/**").hasAnyRole("ADMIN", "ANALYST")
+                .requestMatchers(HttpMethod.DELETE, "/api/incidents/**").hasRole("ADMIN")
+
+                // Asset Inventory authorization rules
+                .requestMatchers(HttpMethod.GET, "/api/assets/**").hasAnyRole("ADMIN", "ANALYST", "VIEWER")
+                .requestMatchers(HttpMethod.POST, "/api/assets/**").hasAnyRole("ADMIN", "ANALYST")
+                .requestMatchers(HttpMethod.DELETE, "/api/assets/**").hasRole("ADMIN")
+
+                // Threat Intelligence authorization rules
+                .requestMatchers(HttpMethod.GET, "/api/threat-intel/**").hasAnyRole("ADMIN", "ANALYST", "VIEWER")
+                .requestMatchers(HttpMethod.POST, "/api/threat-intel/**").hasAnyRole("ADMIN", "ANALYST")
+                .requestMatchers(HttpMethod.DELETE, "/api/threat-intel/**").hasRole("ADMIN")
+
+                // Log Management authorization rules
+                .requestMatchers(HttpMethod.GET, "/api/logs/**").hasAnyRole("ADMIN", "ANALYST", "VIEWER")
+                .requestMatchers(HttpMethod.POST, "/api/logs/**").hasAnyRole("ADMIN", "ANALYST")
+                .requestMatchers(HttpMethod.DELETE, "/api/logs/**").hasRole("ADMIN")
+
                 // Audit Logs authorization rules
                 .requestMatchers("/api/audit-logs/**").hasAnyRole("ADMIN", "ANALYST")
 
