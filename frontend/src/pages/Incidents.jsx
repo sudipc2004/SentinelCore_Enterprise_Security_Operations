@@ -16,6 +16,7 @@ const emptyForm = {
   category: 'Network Anomaly',
   source: 'Manual',
   assignedTo: '',
+  assignedTeam: '',
   dueAt: '',
 };
 
@@ -27,6 +28,7 @@ export default function Incidents() {
 
   const [incidents, setIncidents] = useState([]);
   const [usersList, setUsersList] = useState([]);
+  const [teamsList, setTeamsList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
@@ -78,6 +80,15 @@ export default function Incidents() {
     }
   };
 
+  const fetchTeamsList = async () => {
+    try {
+      const response = await axios.get('/api/teams');
+      setTeamsList(response.data || []);
+    } catch (err) {
+      showToast({ type: 'error', message: 'Could not load team routing list.' });
+    }
+  };
+
   useEffect(() => {
     fetchIncidents();
   }, [page, statusFilter, priorityFilter]);
@@ -85,6 +96,7 @@ export default function Incidents() {
   useEffect(() => {
     if (canManage) {
       fetchUsersList();
+      fetchTeamsList();
     }
   }, [canManage]);
 
@@ -119,6 +131,7 @@ export default function Incidents() {
       category: incident.category || 'Network Anomaly',
       source: incident.source || 'Manual',
       assignedTo: incident.assignedTo?.id || '',
+      assignedTeam: incident.assignedTeam?.id || '',
       dueAt: incident.dueAt ? incident.dueAt.slice(0, 16) : '',
     });
     setFormError('');
@@ -261,7 +274,7 @@ export default function Incidents() {
                   <th className="px-6 py-4">Incident</th>
                   <th className="px-6 py-4">Priority</th>
                   <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4">Assignee</th>
+                  <th className="px-6 py-4">Team / Assignee</th>
                   <th className="px-6 py-4">Due</th>
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
@@ -288,7 +301,10 @@ export default function Incidents() {
                       </span>
                     </td>
                     <td className="px-6 py-4 font-mono text-slate-300">{incident.status}</td>
-                    <td className="px-6 py-4 font-mono text-slate-400">{incident.assignedTo?.name || 'Unassigned'}</td>
+                    <td className="px-6 py-4 font-mono text-slate-400">
+                      <div>{incident.assignedTeam?.teamName || 'No team'}</div>
+                      <div className="mt-1 text-[10px] text-slate-500">{incident.assignedTo?.name || 'Unassigned'}</div>
+                    </td>
                     <td className="px-6 py-4 font-mono text-slate-400">{incident.dueAt ? new Date(incident.dueAt).toLocaleString() : 'No SLA'}</td>
                     <td className="px-6 py-4 text-right space-x-2">
                       {canManage ? (
@@ -396,6 +412,14 @@ export default function Incidents() {
                     {assignableUsers.map((user) => <option key={user.id} value={user.id}>{user.name} ({user.role})</option>)}
                   </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">Routing Team</label>
+                <select value={formData.assignedTeam} onChange={(e) => setFormData({ ...formData, assignedTeam: e.target.value })} className="glass-input w-full bg-[#0b1220] px-4 py-3 text-xs text-white">
+                  <option value="">No team queue</option>
+                  {teamsList.map((team) => <option key={team.id} value={team.id}>{team.teamName} ({team.department || 'Security'})</option>)}
+                </select>
               </div>
 
               <div>

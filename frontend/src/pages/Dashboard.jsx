@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { AlertTriangle, Clock, Network, Siren, UserCheck, Users } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import {
   AlertTriangle,
+  Clock,
   Network,
   ShieldAlert,
+  Siren,
   UserCheck,
   Users,
   Wifi,
   WifiOff,
   Activity,
-  Clock,
   TrendingUp,
   Zap,
 } from 'lucide-react';
@@ -233,10 +233,9 @@ export default function Dashboard() {
         <div className="sc-card flex min-h-36 items-center justify-between p-6">
           <div>
             <p className="sc-text-kicker">Open incidents</p>
-            <h3 className="mt-2">
-              <span className="text-3xl font-bold text-white">{stats?.openIncidents ?? 0}</span>
-            <p className="sc-text-kicker">Avg MTTR</p>
-            <h3 className="mt-2 text-3xl font-bold text-amber-400">
+            <h3 className="mt-2 text-3xl font-bold text-white">{stats?.openIncidents ?? 0}</h3>
+            <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.22em] text-slate-500">Avg MTTR</p>
+            <h3 className="mt-1 text-xl font-bold text-amber-400">
               {stats?.avgMttrHours != null ? `${stats.avgMttrHours}h` : '—'}
             </h3>
             <p className="mt-1 text-xs text-slate-500">mean time to resolve</p>
@@ -244,6 +243,41 @@ export default function Dashboard() {
           <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-3 text-amber-300">
             <Siren className="h-6 w-6" />
             <Clock className="h-6 w-6" />
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="sc-card flex min-h-28 items-center justify-between p-5">
+          <div>
+            <p className="sc-text-kicker">Asset Inventory</p>
+            <h3 className="mt-2 text-2xl font-bold text-white">{stats?.totalAssets ?? 0}</h3>
+            <p className="mt-1 text-xs text-slate-500">{stats?.onlineAssets ?? 0} online assets</p>
+          </div>
+          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-emerald-300">
+            <Network className="h-5 w-5" />
+          </div>
+        </div>
+
+        <div className="sc-card flex min-h-28 items-center justify-between p-5">
+          <div>
+            <p className="sc-text-kicker">Log Management</p>
+            <h3 className="mt-2 text-2xl font-bold text-white">{stats?.totalLogs ?? 0}</h3>
+            <p className="mt-1 text-xs text-slate-500">{stats?.anomalyLogs ?? 0} anomaly records</p>
+          </div>
+          <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-3 text-amber-300">
+            <Activity className="h-5 w-5" />
+          </div>
+        </div>
+
+        <div className="sc-card flex min-h-28 items-center justify-between p-5">
+          <div>
+            <p className="sc-text-kicker">Threat Intel</p>
+            <h3 className="mt-2 text-2xl font-bold text-white">{stats?.totalThreatIntel ?? 0}</h3>
+            <p className="mt-1 text-xs text-slate-500">active IOC indicators</p>
+          </div>
+          <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-3 text-red-300">
+            <ShieldAlert className="h-5 w-5" />
           </div>
         </div>
       </div>

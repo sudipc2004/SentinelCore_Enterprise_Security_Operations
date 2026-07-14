@@ -4,6 +4,7 @@ import { ShieldCheck, Plus, Trash2, Globe, Server, Link2, Key, AlertCircle, X } 
 
 export default function ThreatIntel() {
   const [iocs, setIocs] = useState([]);
+  const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -13,7 +14,8 @@ export default function ThreatIntel() {
     type: 'IP',
     value: '',
     description: '',
-    source: 'AlienVault OTX'
+    source: 'AlienVault OTX',
+    reviewerTeamId: ''
   });
   const [formError, setFormError] = useState('');
 
@@ -30,9 +32,21 @@ export default function ThreatIntel() {
     }
   };
 
+  const fetchTeams = async () => {
+    try {
+      const response = await axios.get('/api/teams');
+      setTeams(response.data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     fetchIocs();
+    fetchTeams();
   }, []);
+
+  const getTeamName = (teamId) => teams.find((team) => team.id === teamId)?.teamName || 'Unassigned';
 
   const handleAddSubmit = async (e) => {
     e.preventDefault();
@@ -47,7 +61,8 @@ export default function ThreatIntel() {
         type: 'IP',
         value: '',
         description: '',
-        source: 'AlienVault OTX'
+        source: 'AlienVault OTX',
+        reviewerTeamId: ''
       });
       setShowAddForm(false);
       fetchIocs();
@@ -123,6 +138,7 @@ export default function ThreatIntel() {
                   <th className="py-4 px-6">IOC Type</th>
                   <th className="py-4 px-6">Indicator Block Value</th>
                   <th className="py-4 px-6">Source / Provider</th>
+                  <th className="py-4 px-6">Reviewer Team</th>
                   <th className="py-4 px-6">Description</th>
                   <th className="py-4 px-6">Added Time</th>
                   <th className="py-4 px-6 text-right">Action</th>
@@ -141,6 +157,7 @@ export default function ThreatIntel() {
                       {item.value}
                     </td>
                     <td className="py-4 px-6 text-gray-400">{item.source}</td>
+                    <td className="py-4 px-6 text-emerald-400">{getTeamName(item.reviewerTeamId)}</td>
                     <td className="py-4 px-6 text-gray-300 max-w-xs truncate" title={item.description}>
                       {item.description}
                     </td>
@@ -222,6 +239,20 @@ export default function ThreatIntel() {
                   placeholder="e.g. AlienVault OTX, Custom Log Check"
                   className="w-full px-3 py-2 rounded-lg glass-input text-xs"
                 />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-1">Reviewer Team</label>
+                <select
+                  value={formData.reviewerTeamId}
+                  onChange={(e) => setFormData({ ...formData, reviewerTeamId: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg glass-input text-xs bg-slate-900 text-white cursor-pointer"
+                >
+                  <option value="">Unassigned</option>
+                  {teams.map((team) => (
+                    <option key={team.id} value={team.id}>{team.teamName}</option>
+                  ))}
+                </select>
               </div>
 
               <div>
