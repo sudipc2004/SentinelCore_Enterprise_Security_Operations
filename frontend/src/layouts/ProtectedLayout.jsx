@@ -179,7 +179,7 @@ export default function ProtectedLayout({ children }) {
                     <p className="truncate text-base font-semibold text-white">{user.name}</p>
                     <BadgeCheck className="h-3.5 w-3.5 text-emerald-300" />
                   </div>
-                  <p className="text-xs text-green-500">Sentinel Core Version V1.0</p>
+                  <p className="text-xs text-green-500">Sentinel Core Version V2.0</p>
                   <div className="mt-1 flex flex-wrap items-center gap-2">
                     <span className="sc-badge border-emerald-500/20 bg-emerald-500/10 text-emerald-300">{user.role}</span>
                     <span className="inline-flex items-center gap-1 text-xs text-slate-400">
