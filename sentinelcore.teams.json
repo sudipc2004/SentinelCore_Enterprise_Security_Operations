@@ -1,0 +1,105 @@
+[{
+  "_id": {
+    "$oid": "6a50d5eb6e100d55d9c1c4d6"
+  },
+  "teamName": "Alpha",
+  "department": "Sales&Marketing",
+  "teamLead": "6a50f40a6289c132c980c913",
+  "members": [
+    "6a50e2702ebea069090f0d1e",
+    "6a50f40a6289c132c980c913",
+    "6a50f4486289c132c980c917"
+  ],
+  "description": "Improve Sales",
+  "createdAt": {
+    "$date": "2026-07-10T11:22:19.935Z"
+  },
+  "updatedAt": {
+    "$date": "2026-07-13T06:02:34.732Z"
+  },
+  "_class": "com.sentinelcore.model.Team"
+},
+{
+  "_id": {
+    "$oid": "6a50d60a6e100d55d9c1c4d8"
+  },
+  "teamName": "Delta",
+  "department": "Developer",
+  "teamLead": "6a50d23c6e100d55d9c1c4cf",
+  "members": [
+    "6a50e1302ebea069090f0d19",
+    "6a50f3236289c132c980c906",
+    "6a50f30c6289c132c980c904",
+    "6a50d23c6e100d55d9c1c4cf"
+  ],
+  "description": "Software Development",
+  "createdAt": {
+    "$date": "2026-07-10T11:22:50.257Z"
+  },
+  "updatedAt": {
+    "$date": "2026-07-10T13:34:07.700Z"
+  },
+  "_class": "com.sentinelcore.model.Team"
+},
+{
+  "_id": {
+    "$oid": "6a50dedf2ebea069090f0d0e"
+  },
+  "teamName": "Beta",
+  "department": "IT Support",
+  "teamLead": "6a50f3b46289c132c980c90f",
+  "members": [
+    "6a50f2c26289c132c980c8ff",
+    "6a50f2dc6289c132c980c901",
+    "6a50f4286289c132c980c915"
+  ],
+  "description": "Fix Bugs",
+  "createdAt": {
+    "$date": "2026-07-10T12:00:31.721Z"
+  },
+  "updatedAt": {
+    "$date": "2026-07-10T13:34:57.773Z"
+  },
+  "_class": "com.sentinelcore.model.Team"
+},
+{
+  "_id": {
+    "$oid": "6a522bb1b8db831ddb3a4070"
+  },
+  "teamName": "Red",
+  "department": "Finance",
+  "teamLead": "6a50f4286289c132c980c915",
+  "members": [
+    "6a50f4286289c132c980c915",
+    "6a50e0ac2ebea069090f0d14",
+    "6a50e2702ebea069090f0d1e"
+  ],
+  "description": "Check the Audit Reports And file the ITR",
+  "createdAt": {
+    "$date": "2026-07-11T11:40:33.278Z"
+  },
+  "updatedAt": {
+    "$date": "2026-07-11T11:40:33.278Z"
+  },
+  "_class": "com.sentinelcore.model.Team"
+},
+{
+  "_id": {
+    "$oid": "6a5500d3c03d491061894595"
+  },
+  "teamName": "Blue",
+  "department": "QA",
+  "teamLead": "6a50e2702ebea069090f0d1e",
+  "members": [
+    "6a51451f0876fe38a4d0e7d3",
+    "6a50f33f6289c132c980c908"
+  ],
+  "description": "Testing",
+  "createdAt": {
+    "$date": "2026-07-13T15:14:27.361Z"
+  },
+  "updatedAt": {
+    "$date": "2026-07-13T15:14:27.361Z"
+  },
+  "_class": "com.sentinelcore.model.Team"
+}]
