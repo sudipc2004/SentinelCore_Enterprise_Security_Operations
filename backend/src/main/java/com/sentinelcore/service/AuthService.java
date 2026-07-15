@@ -12,6 +12,7 @@ import com.sentinelcore.security.JwtTokenProvider;
 import com.sentinelcore.security.UserPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -98,6 +99,10 @@ public class AuthService {
                     user.getRole().name(),
                     user.getDepartment()
             );
+        } catch (DisabledException ex) {
+            auditLogService.log(null, loginRequest.getEmail(), "LOGIN_FAILED", "AUTH",
+                    "Inactive account login attempt for email: " + loginRequest.getEmail());
+            throw new BadRequestException("Your account is inactive. Please contact your administrator.");
         } catch (Exception ex) {
             // Log failed login
             auditLogService.log(null, loginRequest.getEmail(), "LOGIN_FAILED", "AUTH", 
