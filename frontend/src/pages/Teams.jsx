@@ -11,10 +11,13 @@ export default function Teams() {
 
   // Team lists
   const [teams, setTeams] = useState([]);
+  const [assets, setAssets] = useState([]);
+  const [incidents, setIncidents] = useState([]);
   const [usersList, setUsersList] = useState([]); // Pre-loaded for dropdown selections
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
+  const [resolvingIncidentId, setResolvingIncidentId] = useState(null);
 
   // Selected Team Detail view state
   const [activeTeamId, setActiveTeamId] = useState(null);
@@ -33,6 +36,12 @@ export default function Teams() {
     members: [],
     description: '',
   });
+  const statusStyles = {
+    open: "text-red-500",
+    triaged: "text-blue-500",
+    in_progress: "text-emerald-500",
+  };
+
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
 
@@ -64,12 +73,39 @@ export default function Teams() {
     }
   };
 
+  const fetchAssets = async () => {
+    try {
+      const response = await axios.get('/api/assets');
+      setAssets(response.data || []);
+    } catch (err) {
+      console.error('Failed to load assets for team view', err);
+    }
+  };
+
+  const fetchIncidents = async () => {
+    try {
+      const response = await axios.get('/api/incidents', {
+        params: {
+          page: 0,
+          size: 200,
+          sortBy: 'createdAt',
+          direction: 'desc',
+        },
+      });
+      setIncidents(response.data?.content || []);
+    } catch (err) {
+      console.error('Failed to load incidents for team view', err);
+    }
+  };
+
   useEffect(() => {
     fetchTeams();
+    fetchAssets();
+    fetchIncidents();
     if (isAdmin) {
       fetchUsersList();
     }
-  }, []);
+  }, [isAdmin]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -161,7 +197,48 @@ export default function Teams() {
     });
   };
 
+  const handleResolveIncident = async (incident) => {
+    if (!activeTeam || activeTeam.teamLead?.id !== currentUser?.id) {
+      showToast({ type: 'error', message: 'Only the team lead can update incidents for this team.' });
+      return;
+    }
+
+    setResolvingIncidentId(incident.id);
+
+    try {
+      await axios.put(`/api/incidents/${incident.id}`, {
+        title: incident.title || '',
+        description: incident.description || '',
+        priority: incident.priority || 'P3',
+        status: 'RESOLVED',
+        category: incident.category || 'Network Anomaly',
+        source: incident.source || 'Manual',
+        assignedTo: incident.assignedTo?.id || '',
+        assignedTeam: incident.assignedTeam?.id || activeTeam.id,
+        dueAt: incident.dueAt || null,
+      });
+
+      showToast({ type: 'success', message: 'Incident marked as resolved.' });
+      fetchIncidents();
+    } catch (err) {
+      showToast({ type: 'error', message: err.response?.data?.message || 'Failed to resolve incident.' });
+    } finally {
+      setResolvingIncidentId(null);
+    }
+  };
+
   const activeTeam = teams.find(t => t.id === activeTeamId);
+  const activeTeamAssets = activeTeam
+    ? assets.filter((asset) => asset.ownerTeamId === activeTeam.id || asset.ownerTeam?.id === activeTeam.id)
+    : [];
+  const activeTeamIncidents = activeTeam
+    ? incidents.filter((incident) => {
+      const isAssignedToTeam = incident.assignedTeam?.id === activeTeam.id || incident.assignedTo?.id === activeTeam.id;
+      const isOpen = !['RESOLVED', 'CLOSED'].includes(incident.status);
+      return isAssignedToTeam && isOpen;
+    })
+    : [];
+  const isTeamLead = activeTeam?.teamLead?.id === currentUser?.id;
 
   return (
     <div className="space-y-6 sc-fade-in">
@@ -223,8 +300,8 @@ export default function Teams() {
                 key={t.id}
                 onClick={() => setActiveTeamId(t.id)}
                 className={`cursor-pointer rounded-2xl border p-5 transition duration-200 hover:-translate-y-0.5 ${activeTeamId === t.id
-                    ? 'border-sky-400/30 bg-sky-500/8 shadow-[0_12px_30px_rgba(37,99,235,0.18)]'
-                    : 'border-white/8 bg-[#161b22]/90 hover:border-sky-400/20 hover:bg-white/5'
+                  ? 'border-sky-400/30 bg-sky-500/8 shadow-[0_12px_30px_rgba(37,99,235,0.18)]'
+                  : 'border-white/8 bg-[#161b22]/90 hover:border-sky-400/20 hover:bg-white/5'
                   }`}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -232,6 +309,17 @@ export default function Teams() {
                   <span className="sc-badge border-white/10 bg-white/5 text-slate-300">{t.department}</span>
                 </div>
                 <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-slate-400">{t.description || 'No description provided'}</p>
+                <div className="mt-4 grid grid-cols-2 gap-2 text-[10px] font-mono">
+                  <div className="rounded-xl border border-white/8 bg-[#0b1220]/60 px-3 py-2 text-slate-300">
+                    Assets: {assets.filter((asset) => asset.ownerTeamId === t.id || asset.ownerTeam?.id === t.id).length}
+                  </div>
+                  <div className="rounded-xl border border-white/8 bg-[#0b1220]/60 px-3 py-2 text-slate-300">
+                    Open Incidents: {incidents.filter((incident) => {
+                      const isAssignedToTeam = incident.assignedTeam?.id === t.id || incident.assignedTo?.id === t.id;
+                      return isAssignedToTeam && !['RESOLVED', 'CLOSED'].includes(incident.status);
+                    }).length}
+                  </div>
+                </div>
                 <div className="mt-4 flex items-center justify-between border-t border-white/8 pt-3 text-[10px] font-mono text-slate-500">
                   <span className="flex items-center">
                     <Users className="mr-1 h-3.5 w-3.5 text-slate-400" />
@@ -308,6 +396,89 @@ export default function Teams() {
                   </div>
                 ) : (
                   <p className="text-xs italic text-slate-500 font-mono">No members are assigned to this team.</p>
+                )}
+              </div>
+              <div>
+                <h4 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Assets Owned ({activeTeamAssets.length})</h4>
+                {activeTeamAssets.length > 0 ? (
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    {activeTeamAssets.map((asset) => (
+                      <div key={asset.id} className="rounded-2xl border border-white/8 bg-[#0b1220]/60 p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="truncate text-xs font-semibold text-white">{asset.name}</p>
+                            <p className="mt-1 text-[10px] font-mono text-slate-400">
+                              {asset.type || 'Unknown type'} / {asset.ipAddress || 'No IP'}
+                            </p>
+                          </div>
+                          <span className={`rounded-full border px-2.5 py-1 text-[10px] font-bold ${asset.status === 'ONLINE'
+                              ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300'
+                              : 'border-red-500/20 bg-red-500/10 text-red-300'
+                            }`}>
+                            {asset.status || 'UNKNOWN'}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs italic text-slate-500 font-mono">No assets are owned by this team.</p>
+                )}
+              </div>
+              <div>
+                <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <h4 className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Open Incidents ({activeTeamIncidents.length})</h4>
+                  <span className={`rounded-full border px-3 py-1 text-[10px] font-bold ${isTeamLead
+                      ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300'
+                      : 'border-white/10 bg-white/5 text-slate-400'
+                    }`}>
+                    {isTeamLead ? 'Team lead can update' : 'Only the team lead can update the status'}
+                  </span>
+                </div>
+
+                {activeTeamIncidents.length > 0 ? (
+                  <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+                    {activeTeamIncidents.map((incident) => (
+                      <div key={incident.id} className="rounded-2xl border border-white/8 bg-[#0b1220]/70 p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-white">{incident.title}</p>
+                            <p className="mt-1 text-[10px] font-mono text-slate-400">
+                              {incident.category || 'Uncategorized'} / {incident.source || 'Manual'}
+                            </p>
+                          </div>
+                          <span className="rounded-full border border-red-500/20 bg-red-500/10 px-2.5 py-1 text-[10px] font-bold text-red-300">
+                            {incident.priority || 'P3'}
+                          </span>
+                        </div>
+
+                        <div className="mt-3 space-y-2 text-[10px] font-mono text-slate-400">
+                          <p className="text-shadow-slate-50">
+                            Status:{" "}
+                            <span className={`font-semibold ${statusStyles[incident.status.toLowerCase()] || "text-slate-400"}`}>
+                              {incident.status.replace("_", " ")}
+                            </span>
+                          </p>
+
+                          <p>Assignee: <span className="text-slate-200">{incident.assignedTo?.name || 'Unassigned'}</span></p>
+                          <p>Due: <span className="text-slate-200">{incident.dueAt ? new Date(incident.dueAt).toLocaleString() : 'No SLA'}</span></p>
+                        </div>
+
+                        <button
+                          type="button"
+                          disabled={!isTeamLead || resolvingIncidentId === incident.id}
+                          onClick={() => handleResolveIncident(incident)}
+                          className="mt-4 c-p rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-300 transition hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/5 disabled:text-slate-500"
+                        >
+                          {resolvingIncidentId === incident.id ? 'Resolving...' : 'Mark as Resolved'}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-white/8 bg-white/5 p-6 text-center">
+                    <p className="text-xs font-mono text-slate-400">No open incidents are assigned to this team.</p>
+                  </div>
                 )}
               </div>
             </div>
