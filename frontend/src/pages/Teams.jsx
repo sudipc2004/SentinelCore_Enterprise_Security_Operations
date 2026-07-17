@@ -17,7 +17,6 @@ export default function Teams() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
-  const [resolvingIncidentId, setResolvingIncidentId] = useState(null);
 
   // Selected Team Detail view state
   const [activeTeamId, setActiveTeamId] = useState(null);
@@ -197,36 +196,6 @@ export default function Teams() {
     });
   };
 
-  const handleResolveIncident = async (incident) => {
-    if (!activeTeam || activeTeam.teamLead?.id !== currentUser?.id) {
-      showToast({ type: 'error', message: 'Only the team lead can update incidents for this team.' });
-      return;
-    }
-
-    setResolvingIncidentId(incident.id);
-
-    try {
-      await axios.put(`/api/incidents/${incident.id}`, {
-        title: incident.title || '',
-        description: incident.description || '',
-        priority: incident.priority || 'P3',
-        status: 'RESOLVED',
-        category: incident.category || 'Network Anomaly',
-        source: incident.source || 'Manual',
-        assignedTo: incident.assignedTo?.id || '',
-        assignedTeam: incident.assignedTeam?.id || activeTeam.id,
-        dueAt: incident.dueAt || null,
-      });
-
-      showToast({ type: 'success', message: 'Incident marked as resolved.' });
-      fetchIncidents();
-    } catch (err) {
-      showToast({ type: 'error', message: err.response?.data?.message || 'Failed to resolve incident.' });
-    } finally {
-      setResolvingIncidentId(null);
-    }
-  };
-
   const activeTeam = teams.find(t => t.id === activeTeamId);
   const activeTeamAssets = activeTeam
     ? assets.filter((asset) => asset.ownerTeamId === activeTeam.id || asset.ownerTeam?.id === activeTeam.id)
@@ -238,7 +207,6 @@ export default function Teams() {
       return isAssignedToTeam && isOpen;
     })
     : [];
-  const isTeamLead = activeTeam?.teamLead?.id === currentUser?.id;
 
   return (
     <div className="space-y-6 sc-fade-in">
@@ -428,12 +396,6 @@ export default function Teams() {
               <div>
                 <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <h4 className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Open Incidents ({activeTeamIncidents.length})</h4>
-                  <span className={`rounded-full border px-3 py-1 text-[10px] font-bold ${isTeamLead
-                      ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300'
-                      : 'border-white/10 bg-white/5 text-slate-400'
-                    }`}>
-                    {isTeamLead ? 'Team lead can update' : 'Only the team lead can update the status'}
-                  </span>
                 </div>
 
                 {activeTeamIncidents.length > 0 ? (
@@ -463,15 +425,6 @@ export default function Teams() {
                           <p>Assignee: <span className="text-slate-200">{incident.assignedTo?.name || 'Unassigned'}</span></p>
                           <p>Due: <span className="text-slate-200">{incident.dueAt ? new Date(incident.dueAt).toLocaleString() : 'No SLA'}</span></p>
                         </div>
-
-                        <button
-                          type="button"
-                          disabled={!isTeamLead || resolvingIncidentId === incident.id}
-                          onClick={() => handleResolveIncident(incident)}
-                          className="mt-4 c-p rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-300 transition hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/5 disabled:text-slate-500"
-                        >
-                          {resolvingIncidentId === incident.id ? 'Resolving...' : 'Mark as Resolved'}
-                        </button>
                       </div>
                     ))}
                   </div>
