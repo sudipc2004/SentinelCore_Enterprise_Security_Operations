@@ -1,0 +1,444 @@
+[{
+  "_id": {
+    "$oid": "6a50d1b06e100d55d9c1c4cc"
+  },
+  "name": "Admin",
+  "email": "admin@sentinelcore.in",
+  "password": "$2a$10$Z82siNx6.cL6CLZTERJeC.onwTabVVZfhz7jJ3jI6M.YMmPHIoV0u",
+  "role": "ADMIN",
+  "department": "Security Operations",
+  "status": "ACTIVE",
+  "lastLogin": {
+    "$date": "2026-07-14T16:01:42.033Z"
+  },
+  "createdAt": {
+    "$date": "2026-07-10T11:04:16.275Z"
+  },
+  "updatedAt": {
+    "$date": "2026-07-14T15:55:52.740Z"
+  },
+  "_class": "com.sentinelcore.model.User"
+},
+{
+  "_id": {
+    "$oid": "6a50d23c6e100d55d9c1c4cf"
+  },
+  "name": "Subhasish Nath",
+  "email": "subhas@sentinelcore.in",
+  "password": "$2a$10$N6nk2ewtuIwxlBI4mupvLeuMVlqiijAQlKZaK6F4X.Ip4crQnocYm",
+  "role": "ANALYST",
+  "department": "Developer",
+  "status": "ACTIVE",
+  "lastLogin": {
+    "$date": "2026-07-14T11:12:35.682Z"
+  },
+  "createdAt": {
+    "$date": "2026-07-10T11:06:36.648Z"
+  },
+  "updatedAt": {
+    "$date": "2026-07-10T13:26:10.968Z"
+  },
+  "_class": "com.sentinelcore.model.User"
+},
+{
+  "_id": {
+    "$oid": "6a50dfa82ebea069090f0d12"
+  },
+  "name": "Samrat Kuman",
+  "email": "samrat@sentinelcore.in",
+  "password": "$2a$10$XJDYwPTmiD8ZtqJiSE9nReaMMJ0UWB9sxL6DvkGiNOKcExobovEYe",
+  "role": "VIEWER",
+  "department": "QA",
+  "status": "ACTIVE",
+  "lastLogin": {
+    "$date": "2026-07-13T07:12:35.796Z"
+  },
+  "createdAt": {
+    "$date": "2026-07-10T12:03:52.202Z"
+  },
+  "updatedAt": {
+    "$date": "2026-07-10T12:03:52.202Z"
+  },
+  "_class": "com.sentinelcore.model.User"
+},
+{
+  "_id": {
+    "$oid": "6a50e0ac2ebea069090f0d14"
+  },
+  "name": "Ayan Dutta",
+  "email": "ayan@sentinelcore.in",
+  "password": "$2a$10$Llx3ciS9OgFJej0CsbpVdOFMuR8TJsY/gDHz9NKbwSNXgGZtOwgL2",
+  "role": "ANALYST",
+  "department": "Finance",
+  "status": "ACTIVE",
+  "lastLogin": {
+    "$date": "2026-07-10T12:09:05.004Z"
+  },
+  "createdAt": {
+    "$date": "2026-07-10T12:08:12.419Z"
+  },
+  "updatedAt": {
+    "$date": "2026-07-10T13:30:01.974Z"
+  },
+  "_class": "com.sentinelcore.model.User"
+},
+{
+  "_id": {
+    "$oid": "6a50e1302ebea069090f0d19"
+  },
+  "name": "Karan KC",
+  "email": "karan@sentinelcore.in",
+  "password": "$2a$10$tCaKRUnV/AQ2.SdYjGBMa.MhUI1bwAfvTpbR7kDd9NuRs8GQXz54O",
+  "role": "VIEWER",
+  "department": "QA",
+  "status": "ACTIVE",
+  "lastLogin": {
+    "$date": "2026-07-13T13:19:17.069Z"
+  },
+  "createdAt": {
+    "$date": "2026-07-10T12:10:24.988Z"
+  },
+  "updatedAt": {
+    "$date": "2026-07-10T12:10:24.988Z"
+  },
+  "_class": "com.sentinelcore.model.User"
+},
+{
+  "_id": {
+    "$oid": "6a50e2702ebea069090f0d1e"
+  },
+  "name": "Vikram L",
+  "email": "vikram@sentinelcore.in",
+  "password": "$2a$10$Y9yneONZSRtsMAL/jzdiLuekylo9LGNUb80XlkD5Gm7/gKf..Idg.",
+  "role": "ANALYST",
+  "department": "Sales&Marketing",
+  "status": "ACTIVE",
+  "lastLogin": {
+    "$date": "2026-07-14T11:35:09.221Z"
+  },
+  "createdAt": {
+    "$date": "2026-07-10T12:15:44.263Z"
+  },
+  "updatedAt": {
+    "$date": "2026-07-10T12:15:44.263Z"
+  },
+  "_class": "com.sentinelcore.model.User"
+},
+{
+  "_id": {
+    "$oid": "6a50f2c26289c132c980c8ff"
+  },
+  "name": "Pawan Kumar",
+  "email": "pawan@sentinelcore.in",
+  "password": "$2a$10$Yq3yi9Nuki.fMnWTnm5CmuC5n7vhEqdWk4t/RW.0hZzkSeMW3gP2C",
+  "role": "VIEWER",
+  "department": "IT Support",
+  "status": "ACTIVE",
+  "createdAt": {
+    "$date": "2026-07-10T13:25:22.359Z"
+  },
+  "updatedAt": {
+    "$date": "2026-07-10T13:25:22.359Z"
+  },
+  "_class": "com.sentinelcore.model.User"
+},
+{
+  "_id": {
+    "$oid": "6a50f2dc6289c132c980c901"
+  },
+  "name": "Vikrant Singh",
+  "email": "vikrant@sentinelcore.in",
+  "password": "$2a$10$a0bQZn.IrtkyyZAZu.RkwOghtvfJQhFPYzdAtdHr8yIzt6bBFN83a",
+  "role": "VIEWER",
+  "department": "IT Support",
+  "status": "ACTIVE",
+  "createdAt": {
+    "$date": "2026-07-10T13:25:48.280Z"
+  },
+  "updatedAt": {
+    "$date": "2026-07-10T13:25:48.280Z"
+  },
+  "_class": "com.sentinelcore.model.User"
+},
+{
+  "_id": {
+    "$oid": "6a50f30c6289c132c980c904"
+  },
+  "name": "Naman Verma",
+  "email": "naman@sentinelcore.in",
+  "password": "$2a$10$dFneccehGtjDN0HOjCmav.3LQAsE3htzD7gK7xeW9ia4G8tKIuD.e",
+  "role": "VIEWER",
+  "department": "Developer",
+  "status": "ACTIVE",
+  "createdAt": {
+    "$date": "2026-07-10T13:26:36.075Z"
+  },
+  "updatedAt": {
+    "$date": "2026-07-10T13:26:36.075Z"
+  },
+  "_class": "com.sentinelcore.model.User"
+},
+{
+  "_id": {
+    "$oid": "6a50f33f6289c132c980c908"
+  },
+  "name": "Alex M",
+  "email": "alex@sentinelcore.in",
+  "password": "$2a$10$cpScbQQsSAT8uJx86Hx3l.IByrxnNt7uwI41OCe/7D93UaKcWoLQa",
+  "role": "ANALYST",
+  "department": "QA",
+  "status": "ACTIVE",
+  "lastLogin": {
+    "$date": "2026-07-14T16:00:33.665Z"
+  },
+  "createdAt": {
+    "$date": "2026-07-10T13:27:27.239Z"
+  },
+  "updatedAt": {
+    "$date": "2026-07-10T13:27:42.598Z"
+  },
+  "_class": "com.sentinelcore.model.User"
+},
+{
+  "_id": {
+    "$oid": "6a50f3686289c132c980c90b"
+  },
+  "name": "Samay Sharma",
+  "email": "samay@sentinelcore.in",
+  "password": "$2a$10$Ve8WDJ2qIzoJ/zIL4z1smOlnmkhdirm065lxIy18BE583H01tiD9.",
+  "role": "ANALYST",
+  "department": "HR",
+  "status": "ACTIVE",
+  "lastLogin": {
+    "$date": "2026-07-14T15:59:22.862Z"
+  },
+  "createdAt": {
+    "$date": "2026-07-10T13:28:08.018Z"
+  },
+  "updatedAt": {
+    "$date": "2026-07-14T15:59:07.998Z"
+  },
+  "_class": "com.sentinelcore.model.User"
+},
+{
+  "_id": {
+    "$oid": "6a50f38a6289c132c980c90d"
+  },
+  "name": "Aman Shaw",
+  "email": "aman@sentinelcore.in",
+  "password": "$2a$10$NlRQ4yLLqbyGecCWRZZwSOZsvTVE7c71RQIQsRo78UIott8xMo.Ti",
+  "role": "VIEWER",
+  "department": "HR",
+  "status": "ACTIVE",
+  "lastLogin": {
+    "$date": "2026-07-11T11:31:23.476Z"
+  },
+  "createdAt": {
+    "$date": "2026-07-10T13:28:42.872Z"
+  },
+  "updatedAt": {
+    "$date": "2026-07-13T12:21:26.971Z"
+  },
+  "_class": "com.sentinelcore.model.User"
+},
+{
+  "_id": {
+    "$oid": "6a50f3b46289c132c980c90f"
+  },
+  "name": "Arpit Singh",
+  "email": "arpit@sentinelcore.in",
+  "password": "$2a$10$2KYnhtnUuEQivS7LhSgExeleFADYuULbyEOz2.s01XAJ9IFOHT.JW",
+  "role": "ANALYST",
+  "department": "IT Support",
+  "status": "ACTIVE",
+  "lastLogin": {
+    "$date": "2026-07-13T15:07:32.781Z"
+  },
+  "createdAt": {
+    "$date": "2026-07-10T13:29:24.153Z"
+  },
+  "updatedAt": {
+    "$date": "2026-07-10T13:30:19.947Z"
+  },
+  "_class": "com.sentinelcore.model.User"
+},
+{
+  "_id": {
+    "$oid": "6a50f40a6289c132c980c913"
+  },
+  "name": "Sudip Chakrabarty",
+  "email": "sudip@sentinelcore.in",
+  "password": "$2a$10$7gLZrsGIfu9.AIJYBy3IFOPVGwI2exBIG/FXr.8DHnhUHD5qFkiUq",
+  "role": "ANALYST",
+  "department": "Sales&Marketing",
+  "status": "ACTIVE",
+  "lastLogin": {
+    "$date": "2026-07-10T13:36:05.374Z"
+  },
+  "createdAt": {
+    "$date": "2026-07-10T13:30:50.502Z"
+  },
+  "updatedAt": {
+    "$date": "2026-07-13T15:06:05.203Z"
+  },
+  "_class": "com.sentinelcore.model.User"
+},
+{
+  "_id": {
+    "$oid": "6a50f4286289c132c980c915"
+  },
+  "name": "Priyanshu Ojha",
+  "email": "priyanshu@sentinelcore.in",
+  "password": "$2a$10$CZ53Gqkid3ddTvIAD1Par.HlJDjdkeryruIdq8rBSisCeOVbZWau2",
+  "role": "ANALYST",
+  "department": "Finance",
+  "status": "ACTIVE",
+  "createdAt": {
+    "$date": "2026-07-10T13:31:20.424Z"
+  },
+  "updatedAt": {
+    "$date": "2026-07-10T13:31:20.424Z"
+  },
+  "_class": "com.sentinelcore.model.User"
+},
+{
+  "_id": {
+    "$oid": "6a50f4486289c132c980c917"
+  },
+  "name": "Gangi Satyanarayan",
+  "email": "gangi@sentinelcore.in",
+  "password": "$2a$10$u4vuzV8ou2joZP1VT88J3.D9G01jjFt5JAcalz6H9skPoD41zMO1K",
+  "role": "ANALYST",
+  "department": "Sales&Marketing",
+  "status": "INACTIVE",
+  "createdAt": {
+    "$date": "2026-07-10T13:31:52.630Z"
+  },
+  "updatedAt": {
+    "$date": "2026-07-14T16:02:19.684Z"
+  },
+  "_class": "com.sentinelcore.model.User"
+},
+{
+  "_id": {
+    "$oid": "6a51441b0876fe38a4d0e7cd"
+  },
+  "name": "Rohan Das",
+  "email": "Rohan@sentinelcore.in",
+  "password": "$2a$10$jPt410hZYsUQwRfRdINJ1.vI/yUJRIYuLjz7tuT900ETOVDnnT1y6",
+  "role": "VIEWER",
+  "department": "HR",
+  "status": "ACTIVE",
+  "lastLogin": {
+    "$date": "2026-07-10T19:18:25.616Z"
+  },
+  "createdAt": {
+    "$date": "2026-07-10T19:12:27.501Z"
+  },
+  "updatedAt": {
+    "$date": "2026-07-14T15:31:54.853Z"
+  },
+  "_class": "com.sentinelcore.model.User"
+},
+{
+  "_id": {
+    "$oid": "6a51451f0876fe38a4d0e7d3"
+  },
+  "name": "Rohit Sharma",
+  "email": "Rohit@sentinelcore.in",
+  "password": "$2a$10$qlEZbMRYy9gDX/gGug6XCegzmks8JiHoxN74SRa4TrRzKXQ.NX166",
+  "role": "ANALYST",
+  "department": "QA",
+  "status": "INACTIVE",
+  "lastLogin": {
+    "$date": "2026-07-11T07:04:24.512Z"
+  },
+  "createdAt": {
+    "$date": "2026-07-10T19:16:47.480Z"
+  },
+  "updatedAt": {
+    "$date": "2026-07-14T15:31:56.407Z"
+  },
+  "_class": "com.sentinelcore.model.User"
+},
+{
+  "_id": {
+    "$oid": "6a547d41a12b9f3412224464"
+  },
+  "name": "Prem Kumar",
+  "email": "prem@gmail.com",
+  "password": "$2a$10$6OIcXvZmgeyEzklxAuTay.yN4a9YwVP3pokM.DF0/AY/ko66e5GEe",
+  "role": "VIEWER",
+  "department": "Developer",
+  "status": "ACTIVE",
+  "lastLogin": {
+    "$date": "2026-07-13T05:53:16.843Z"
+  },
+  "createdAt": {
+    "$date": "2026-07-13T05:53:05.375Z"
+  },
+  "updatedAt": {
+    "$date": "2026-07-13T05:53:05.375Z"
+  },
+  "_class": "com.sentinelcore.model.User"
+},
+{
+  "_id": {
+    "$oid": "6a547db1a12b9f3412224468"
+  },
+  "name": "Raghab Roy",
+  "email": "raghab@gmail.com",
+  "password": "$2a$10$fZH0gQwTYAQiLNwEhhRuDefsShTdzkHhHxl0pMcUTb1vZrpkoihwm",
+  "role": "VIEWER",
+  "department": "IT Support",
+  "status": "ACTIVE",
+  "lastLogin": {
+    "$date": "2026-07-13T12:39:15.830Z"
+  },
+  "createdAt": {
+    "$date": "2026-07-13T05:54:57.311Z"
+  },
+  "updatedAt": {
+    "$date": "2026-07-13T05:54:57.311Z"
+  },
+  "_class": "com.sentinelcore.model.User"
+},
+{
+  "_id": {
+    "$oid": "6a54ffc5c03d491061894590"
+  },
+  "name": "Varun Kumar",
+  "email": "varun@sentinelcore.in",
+  "password": "$2a$10$d4/SHw3N7GYRUlA15/nNn.lrM9Hsk9i4ilpTYlJoLlO.FcgxWk7tK",
+  "role": "VIEWER",
+  "department": "HR",
+  "status": "ACTIVE",
+  "lastLogin": {
+    "$date": "2026-07-13T15:10:08.605Z"
+  },
+  "createdAt": {
+    "$date": "2026-07-13T15:09:57.906Z"
+  },
+  "updatedAt": {
+    "$date": "2026-07-13T15:09:57.906Z"
+  },
+  "_class": "com.sentinelcore.model.User"
+},
+{
+  "_id": {
+    "$oid": "6a55d9b33810cc4137de51eb"
+  },
+  "name": "Rishi Paul",
+  "email": "rishi@sentinelcore.in",
+  "password": "$2a$10$HadHb6mWS2yMarXyRnNaTuYNyiLdCjq773o6aKHI3q/G8YdqSgfDq",
+  "role": "VIEWER",
+  "department": "Finance",
+  "status": "INACTIVE",
+  "createdAt": {
+    "$date": "2026-07-14T06:39:47.812Z"
+  },
+  "updatedAt": {
+    "$date": "2026-07-14T06:42:59.763Z"
+  },
+  "_class": "com.sentinelcore.model.User"
+}]
