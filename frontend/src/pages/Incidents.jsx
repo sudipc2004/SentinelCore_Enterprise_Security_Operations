@@ -63,21 +63,23 @@ function PriorityBadge({ priority }) {
   );
 }
 
-function IncidentCard({ incident, onDragStart, onClick }) {
+function IncidentCard({ incident, onDragStart, onClick, canUpdate }) {
   const column = COLUMNS.find((item) => item.id === incident.status) || COLUMNS[0];
   const isOverdue = incident.dueAt && new Date(incident.dueAt) < new Date() && !['RESOLVED', 'CLOSED'].includes(incident.status);
 
   return (
     <div
-      draggable
-      onDragStart={(event) => onDragStart(event, incident)}
+      draggable={canUpdate}
+      onDragStart={(event) => canUpdate && onDragStart(event, incident)}
       onClick={() => onClick(incident)}
-      className="group relative cursor-grab select-none rounded-2xl border border-white/8 bg-[#0f1623]/90 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-white/15 hover:shadow-[0_12px_28px_rgba(0,0,0,0.35)] active:cursor-grabbing"
+      className={`group relative select-none rounded-2xl border border-white/8 bg-[#0f1623]/90 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-white/15 hover:shadow-[0_12px_28px_rgba(0,0,0,0.35)] ${canUpdate ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'}`}
       style={{ borderLeft: `3px solid ${column.color}` }}
     >
-      <div className="absolute right-3 top-3 opacity-0 transition-opacity group-hover:opacity-40">
-        <GripVertical className="h-4 w-4 text-slate-400" />
-      </div>
+      {canUpdate && (
+        <div className="absolute right-3 top-3 opacity-0 transition-opacity group-hover:opacity-40">
+          <GripVertical className="h-4 w-4 text-slate-400" />
+        </div>
+      )}
 
       <div className="flex items-start justify-between gap-2 pr-5">
         <p className="line-clamp-2 text-xs font-semibold leading-snug text-white">{incident.title}</p>
@@ -111,7 +113,7 @@ function IncidentCard({ incident, onDragStart, onClick }) {
   );
 }
 
-function KanbanColumn({ col, incidents, onDragStart, onDragOver, onDrop, onDragLeave, isDragOver, onCardClick }) {
+function KanbanColumn({ col, incidents, onDragStart, onDragOver, onDrop, onDragLeave, isDragOver, onCardClick, canUpdateIncident }) {
   return (
     <div
       className="flex min-w-[260px] w-[260px] flex-shrink-0 flex-col"
@@ -150,14 +152,20 @@ function KanbanColumn({ col, incidents, onDragStart, onDragOver, onDrop, onDragL
         )}
 
         {incidents.map((incident) => (
-          <IncidentCard key={incident.id} incident={incident} onDragStart={onDragStart} onClick={onCardClick} />
+          <IncidentCard
+            key={incident.id}
+            incident={incident}
+            onDragStart={onDragStart}
+            onClick={onCardClick}
+            canUpdate={canUpdateIncident(incident)}
+          />
         ))}
       </div>
     </div>
   );
 }
 
-function DetailDrawer({ incident, onClose, onEdit, onDelete, canManage, isAdmin }) {
+function DetailDrawer({ incident, onClose, onEdit, onDelete, canUpdateIncident, isAdmin }) {
   if (!incident) {
     return null;
   }
@@ -227,7 +235,7 @@ function DetailDrawer({ incident, onClose, onEdit, onDelete, canManage, isAdmin 
             </div>
           )}
 
-          {canManage && (
+          {canUpdateIncident && (
             <div className="flex gap-2 border-t border-white/8 pt-2">
               <button onClick={() => { onClose(); onEdit(incident); }} className="c-p sc-button-secondary flex-1 px-4 py-2.5 text-xs font-semibold">
                 <Edit2 className="h-3.5 w-3.5" /> Edit
@@ -313,6 +321,23 @@ export default function Incidents() {
     }
   }, [canManage]);
 
+  const canUpdateIncident = (incident) => {
+    if (!currentUser || !incident) {
+      return false;
+    }
+
+    if (currentUser.role === 'ADMIN') {
+      return true;
+    }
+
+    if (incident.assignedTo?.id === currentUser.id) {
+      return true;
+    }
+
+    const assignedTeam = teamsList.find((team) => team.id === incident.assignedTeam?.id);
+    return assignedTeam?.teamLead?.id === currentUser.id;
+  };
+
   const grouped = COLUMNS.reduce((accumulator, column) => {
     accumulator[column.id] = incidents.filter((incident) => {
       const statusMatch = incident.status === column.id;
@@ -347,6 +372,13 @@ export default function Incidents() {
     const incident = dragRef.current;
 
     if (!incident || incident.status === newStatus) {
+      dragRef.current = null;
+      return;
+    }
+
+    if (!canUpdateIncident(incident)) {
+      dragRef.current = null;
+      showToast({ type: 'error', message: 'Only admins, the assignee, or the assigned team lead can update this incident.' });
       return;
     }
 
@@ -382,6 +414,11 @@ export default function Incidents() {
   };
 
   const openEditModal = (incident) => {
+    if (!canUpdateIncident(incident)) {
+      showToast({ type: 'error', message: 'Only admins, the assignee, or the assigned team lead can update this incident.' });
+      return;
+    }
+
     setSelectedIncident(incident);
     setFormData({
       title: incident.title || '',
@@ -489,11 +526,10 @@ export default function Incidents() {
               key={priority || 'all'}
               type="button"
               onClick={() => setPriorityFilter(priority)}
-              className={`c-p rounded-xl border px-3 py-2 text-[10px] font-bold font-mono tracking-[0.18em] transition-all ${
-                priorityFilter === priority
-                  ? 'border-sky-400/40 bg-sky-500/15 text-sky-300'
-                  : 'border-white/8 bg-white/5 text-slate-400 hover:border-white/15'
-              }`}
+              className={`c-p rounded-xl border px-3 py-2 text-[10px] font-bold font-mono tracking-[0.18em] transition-all ${priorityFilter === priority
+                ? 'border-sky-400/40 bg-sky-500/15 text-sky-300'
+                : 'border-white/8 bg-white/5 text-slate-400 hover:border-white/15'
+                }`}
             >
               {priority || 'All'}
             </button>
@@ -529,6 +565,7 @@ export default function Incidents() {
                 onDragLeave={handleDragLeave}
                 isDragOver={dragOverCol === column.id}
                 onCardClick={setDrawerIncident}
+                canUpdateIncident={canUpdateIncident}
               />
             ))}
           </div>
@@ -553,7 +590,7 @@ export default function Incidents() {
           onClose={() => setDrawerIncident(null)}
           onEdit={openEditModal}
           onDelete={(incident) => setIncidentToDelete(incident)}
-          canManage={canManage}
+          canUpdateIncident={canUpdateIncident(drawerIncident)}
           isAdmin={isAdmin}
         />
       )}
@@ -676,3 +713,8 @@ export default function Incidents() {
     </div>
   );
 }
+
+
+
+
+

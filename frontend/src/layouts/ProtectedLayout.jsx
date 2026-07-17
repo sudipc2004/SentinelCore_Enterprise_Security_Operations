@@ -84,13 +84,14 @@ export default function ProtectedLayout({ children }) {
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Users', path: '/users', icon: Users },
     { name: 'Teams', path: '/teams', icon: Network },
+    { name: 'Assets', path: '/assets', icon: Server },
+    { name: 'Incidents', path: '/incidents', icon: Siren },
+    { name: 'Threat Intel', path: '/threat-intel', icon: Radar },
     ...(user?.role === 'ADMIN' || user?.role === 'ANALYST'
       ? [{ name: 'Audit Logs', path: '/audit-logs', icon: ScrollText }]
       : []),
-    { name: 'Assets', path: '/assets', icon: Server },
+    
     { name: 'Log Explorer', path: '/logs', icon: FileText },
-    { name: 'Incidents', path: '/incidents', icon: Siren },
-    { name: 'Threat Intel', path: '/threat-intel', icon: Radar },
     { name: 'Vulnerabilities', path: '/vulnerabilities', icon: Bug },
     { name: 'Alerts', path: '/alerts', icon: BellRing },
     { name: 'Reports', path: '/reports', icon: FileBarChart },

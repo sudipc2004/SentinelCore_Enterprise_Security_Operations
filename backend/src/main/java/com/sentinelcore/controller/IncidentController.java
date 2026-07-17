@@ -53,7 +53,7 @@ public class IncidentController {
             @PathVariable String id,
             @Valid @RequestBody IncidentRequest request,
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        return ResponseEntity.ok(incidentService.updateIncident(id, request, userPrincipal.getUsername()));
+        return ResponseEntity.ok(incidentService.updateIncident(id, request, userPrincipal));
     }
 
     @DeleteMapping("/{id}")

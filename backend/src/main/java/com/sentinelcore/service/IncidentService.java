@@ -5,6 +5,7 @@ import com.sentinelcore.dto.IncidentResponse;
 import com.sentinelcore.dto.TeamResponse;
 import com.sentinelcore.dto.UserResponse;
 import com.sentinelcore.exception.BadRequestException;
+import com.sentinelcore.exception.ForbiddenException;
 import com.sentinelcore.exception.ResourceNotFoundException;
 import com.sentinelcore.model.Incident;
 import com.sentinelcore.model.Role;
@@ -13,6 +14,7 @@ import com.sentinelcore.model.User;
 import com.sentinelcore.repository.IncidentRepository;
 import com.sentinelcore.repository.TeamRepository;
 import com.sentinelcore.repository.UserRepository;
+import com.sentinelcore.security.UserPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -116,11 +118,25 @@ public class IncidentService {
         return mapToIncidentResponse(savedIncident);
     }
 
-    public IncidentResponse updateIncident(String id, IncidentRequest request, String currentUserEmail) {
+    public IncidentResponse updateIncident(String id, IncidentRequest request, UserPrincipal userPrincipal) {
         validateRequest(request);
 
         Incident incident = incidentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Incident not found with id: " + id));
+
+        User currentUser = userPrincipal.getUser();
+        boolean isAdmin = currentUser.getRole() == Role.ADMIN;
+        boolean isAssignedUser = currentUser.getId().equals(incident.getAssignedTo());
+        boolean isAssignedTeamLead = false;
+
+        if (StringUtils.hasText(incident.getAssignedTeam())) {
+            Team assignedTeam = teamRepository.findById(incident.getAssignedTeam()).orElse(null);
+            isAssignedTeamLead = assignedTeam != null && currentUser.getId().equals(assignedTeam.getTeamLead());
+        }
+
+        if (!isAdmin && !isAssignedUser && !isAssignedTeamLead) {
+            throw new ForbiddenException("Access denied. Only admins, the assignee, or the assigned team's lead can update this incident.");
+        }
 
         boolean wasResolved = isResolved(incident.getStatus());
         boolean isNowResolved = isResolved(request.getStatus());
@@ -141,7 +157,7 @@ public class IncidentService {
         incident.setUpdatedAt(LocalDateTime.now());
 
         Incident updatedIncident = incidentRepository.save(incident);
-        auditLogService.log(null, currentUserEmail, "INCIDENT_UPDATED", "INCIDENT",
+        auditLogService.log(currentUser.getId(), currentUser.getEmail(), "INCIDENT_UPDATED", "INCIDENT",
                 "Updated incident: " + updatedIncident.getTitle());
 
         return mapToIncidentResponse(updatedIncident);
