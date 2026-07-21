@@ -6,7 +6,7 @@ import { useToast } from '../components/Toast';
 import { User, Mail, Lock, Briefcase, ShieldAlert, AlertTriangle } from 'lucide-react';
 
 
-const REGISTRATION_ROLES = ['VIEWER', 'ANALYST'];
+const REGISTRATION_ROLES = ['VIEWER', 'ANALYST', 'ADMIN'];
 
 export default function Register() {
   const { register } = useAuth();
