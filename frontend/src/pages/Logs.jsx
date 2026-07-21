@@ -1,101 +1,146 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import {
-  Search,
-  Upload,
-  Trash2,
-  Filter,
+  Activity,
   AlertTriangle,
-  ShieldCheck,
-  FileText,
-  CheckCircle2,
-  X,
-  Calendar,
   Bookmark,
   BookmarkPlus,
+  Calendar,
   ChevronDown,
   ChevronUp,
+  Clock,
+  FileText,
+  Filter,
+  Globe,
+  Hash,
+  Network,
+  RefreshCw,
+  Search,
+  Shield,
+  ShieldCheck,
+  Trash2,
+  Upload,
+  X,
+  Zap,
 } from 'lucide-react';
+import { useToast } from '../components/Toast';
 
-// ─── Severity chip config (maps to riskScore ranges) ────────────────────────
+// ─── System type config ───────────────────────────────────────────────────────
+const SYSTEM_TYPES = ['WINDOWS', 'LINUX', 'APACHE', 'NGINX', 'FIREWALL', 'ROUTER', 'IDS', 'ENDPOINT'];
+
+const SYSTEM_STYLES = {
+  WINDOWS:  { text: 'text-sky-300',     border: 'border-sky-500/25',     bg: 'bg-sky-500/10'     },
+  LINUX:    { text: 'text-amber-300',   border: 'border-amber-500/25',   bg: 'bg-amber-500/10'   },
+  APACHE:   { text: 'text-orange-300',  border: 'border-orange-500/25',  bg: 'bg-orange-500/10'  },
+  NGINX:    { text: 'text-emerald-300', border: 'border-emerald-500/25', bg: 'bg-emerald-500/10' },
+  FIREWALL: { text: 'text-red-300',     border: 'border-red-500/25',     bg: 'bg-red-500/10'     },
+  ROUTER:   { text: 'text-purple-300',  border: 'border-purple-500/25',  bg: 'bg-purple-500/10'  },
+  IDS:      { text: 'text-pink-300',    border: 'border-pink-500/25',    bg: 'bg-pink-500/10'    },
+  ENDPOINT: { text: 'text-slate-300',   border: 'border-white/15',       bg: 'bg-white/8'        },
+};
+
+// ─── Severity chip config ─────────────────────────────────────────────────────
 const SEVERITY_CHIPS = [
-  { label: 'All', value: '' },
-  { label: 'Critical', value: 'CRITICAL', min: 0.85, color: 'border-red-500/40 bg-red-500/10 text-red-300' },
-  { label: 'High', value: 'HIGH', min: 0.65, max: 0.85, color: 'border-amber-500/40 bg-amber-500/10 text-amber-300' },
-  { label: 'Medium', value: 'MEDIUM', min: 0.35, max: 0.65, color: 'border-sky-500/40 bg-sky-500/10 text-sky-300' },
-  { label: 'Low', value: 'LOW', max: 0.35, color: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300' },
+  { label: 'All',      value: '' },
+  { label: 'Critical', value: 'CRITICAL', min: 0.85, text: 'text-red-300',     border: 'border-red-500/30',     bg: 'bg-red-500/10'     },
+  { label: 'High',     value: 'HIGH',     min: 0.65, max: 0.85, text: 'text-amber-300',  border: 'border-amber-500/30',  bg: 'bg-amber-500/10'  },
+  { label: 'Medium',   value: 'MEDIUM',   min: 0.35, max: 0.65, text: 'text-sky-300',    border: 'border-sky-500/30',    bg: 'bg-sky-500/10'    },
+  { label: 'Low',      value: 'LOW',      max: 0.35, text: 'text-emerald-300', border: 'border-emerald-500/30', bg: 'bg-emerald-500/10' },
 ];
 
 const SAVED_QUERIES_KEY = 'sc_saved_log_queries';
 
 function loadSavedQueries() {
-  try {
-    return JSON.parse(localStorage.getItem(SAVED_QUERIES_KEY) || '[]');
-  } catch {
-    return [];
-  }
+  try { return JSON.parse(localStorage.getItem(SAVED_QUERIES_KEY) || '[]'); }
+  catch { return []; }
 }
-
 function persistSavedQueries(queries) {
   localStorage.setItem(SAVED_QUERIES_KEY, JSON.stringify(queries));
 }
 
-export default function Logs() {
-  const [logs, setLogs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+// ─── Sub-components ───────────────────────────────────────────────────────────
+function SystemTypeBadge({ type }) {
+  const style = SYSTEM_STYLES[type] || SYSTEM_STYLES.ENDPOINT;
+  return (
+    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[9px] font-bold font-mono tracking-[0.15em] uppercase ${style.text} ${style.border} ${style.bg}`}>
+      {type}
+    </span>
+  );
+}
 
-  // ─── Search / Filters ────────────────────────────────────────────────────
-  const [search, setSearch] = useState('');
-  const [systemType, setSystemType] = useState('');
-  const [isAnomaly, setIsAnomaly] = useState('');
-  const [severity, setSeverity] = useState('');       // severity chip selection
-  const [startDate, setStartDate] = useState('');      // datetime-local value
-  const [endDate, setEndDate] = useState('');          // datetime-local value
+function RiskBar({ score }) {
+  const pct = Math.round((score ?? 0) * 100);
+  const color = score >= 0.85 ? '#ef4444' : score >= 0.65 ? '#f59e0b' : score >= 0.35 ? '#38bdf8' : '#22c55e';
+  const textColor = score >= 0.85 ? 'text-red-400' : score >= 0.65 ? 'text-amber-400' : score >= 0.35 ? 'text-sky-400' : 'text-emerald-400';
+  return (
+    <div className="flex items-center gap-2">
+      <div className="h-1.5 w-16 rounded-full bg-white/8 overflow-hidden">
+        <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: color }} />
+      </div>
+      <span className={`text-[10px] font-bold font-mono ${textColor}`}>{pct}%</span>
+    </div>
+  );
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
+export default function Logs() {
+  const { showToast } = useToast();
+
+  const [logs, setLogs]       = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState('');
+
+  // ── Filters ──────────────────────────────────────────────────────────────
+  const [search, setSearch]           = useState('');
+  const [systemType, setSystemType]   = useState('');
+  const [isAnomaly, setIsAnomaly]     = useState('');
+  const [severity, setSeverity]       = useState('');
+  const [startDate, setStartDate]     = useState('');
+  const [endDate, setEndDate]         = useState('');
   const [showDatePanel, setShowDatePanel] = useState(false);
 
-  // ─── File Upload ─────────────────────────────────────────────────────────
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [uploadType, setUploadType] = useState('WINDOWS');
-  const [uploadSuccess, setUploadSuccess] = useState('');
-  const [uploadError, setUploadError] = useState('');
-  const [uploading, setUploading] = useState(false);
+  // ── Upload ────────────────────────────────────────────────────────────────
+  const [showUploadPanel, setShowUploadPanel] = useState(false);
+  const [selectedFile, setSelectedFile]       = useState(null);
+  const [uploadType, setUploadType]           = useState('WINDOWS');
+  const [uploading, setUploading]             = useState(false);
 
-  // ─── Log detail modal ────────────────────────────────────────────────────
+  // ── Log detail drawer ─────────────────────────────────────────────────────
   const [selectedLog, setSelectedLog] = useState(null);
 
-  // ─── Saved queries ───────────────────────────────────────────────────────
-  const [savedQueries, setSavedQueries] = useState(loadSavedQueries);
-  const [queryName, setQueryName] = useState('');
+  // ── Delete confirm ────────────────────────────────────────────────────────
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting]         = useState(false);
+
+  // ── Saved queries ─────────────────────────────────────────────────────────
+  const [savedQueries, setSavedQueries]   = useState(loadSavedQueries);
+  const [queryName, setQueryName]         = useState('');
   const [showSavedPanel, setShowSavedPanel] = useState(false);
 
-  // ─── Fetch ───────────────────────────────────────────────────────────────
+  // ── Fetch ─────────────────────────────────────────────────────────────────
   const fetchLogs = useCallback(async () => {
     setLoading(true);
+    setError('');
     try {
       const params = {};
       if (systemType) params.systemType = systemType;
-      if (isAnomaly) params.isAnomaly = isAnomaly === 'true';
-      if (search) params.search = search;
-      if (startDate) params.startDate = new Date(startDate).toISOString();
-      if (endDate)   params.endDate   = new Date(endDate).toISOString();
-
+      if (isAnomaly)  params.isAnomaly  = isAnomaly === 'true';
+      if (search)     params.search     = search;
+      if (startDate)  params.startDate  = new Date(startDate).toISOString();
+      if (endDate)    params.endDate    = new Date(endDate).toISOString();
       const response = await axios.get('/api/logs', { params });
-      setLogs(response.data);
-    } catch (err) {
-      console.error(err);
+      setLogs(response.data || []);
+    } catch {
       setError('Failed to fetch security logs database.');
     } finally {
       setLoading(false);
     }
   }, [systemType, isAnomaly, search, startDate, endDate]);
 
-  useEffect(() => {
-    fetchLogs();
-  }, [systemType, isAnomaly]);   // auto-fetch on dropdown change (same as original)
+  useEffect(() => { fetchLogs(); }, [systemType, isAnomaly]);
 
-  // ─── Derived: severity filter applied client-side ────────────────────────
-  const displayedLogs = React.useMemo(() => {
+  // ── Derived: severity filter client-side ──────────────────────────────────
+  const displayedLogs = useMemo(() => {
     if (!severity) return logs;
     const chip = SEVERITY_CHIPS.find((c) => c.value === severity);
     if (!chip) return logs;
@@ -107,76 +152,76 @@ export default function Logs() {
     });
   }, [logs, severity]);
 
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    fetchLogs();
-  };
+  // ── Summary stats ─────────────────────────────────────────────────────────
+  const stats = useMemo(() => {
+    const anomalyCount = logs.filter((l) => l.anomaly).length;
+    return {
+      total: logs.length,
+      anomalies: anomalyCount,
+      normal: logs.length - anomalyCount,
+      anomalyPct: logs.length ? Math.round((anomalyCount / logs.length) * 100) : 0,
+    };
+  }, [logs]);
 
+  // ── System type counts ────────────────────────────────────────────────────
+  const systemCounts = useMemo(() => {
+    const counts = {};
+    logs.forEach((l) => { counts[l.systemType] = (counts[l.systemType] || 0) + 1; });
+    return counts;
+  }, [logs]);
+
+  // ── Handlers ──────────────────────────────────────────────────────────────
   const handleResetFilters = () => {
-    setSearch('');
-    setSystemType('');
-    setIsAnomaly('');
-    setSeverity('');
-    setStartDate('');
-    setEndDate('');
-    fetchLogs();
+    setSearch(''); setSystemType(''); setIsAnomaly('');
+    setSeverity(''); setStartDate(''); setEndDate('');
   };
 
-  // ─── File upload handlers (unchanged) ────────────────────────────────────
-  const handleFileChange = (e) => {
-    setSelectedFile(e.target.files[0]);
-    setUploadSuccess('');
-    setUploadError('');
-  };
+  const handleFileChange = (e) => setSelectedFile(e.target.files[0]);
 
   const handleUploadSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedFile) {
-      setUploadError('Please select a file to ingest.');
-      return;
-    }
-    const formData = new FormData();
-    formData.append('file', selectedFile);
-    formData.append('systemType', uploadType);
+    if (!selectedFile) { showToast({ type: 'error', message: 'Please select a file to ingest.' }); return; }
+    const fd = new FormData();
+    fd.append('file', selectedFile);
+    fd.append('systemType', uploadType);
     setUploading(true);
-    setUploadError('');
-    setUploadSuccess('');
     try {
-      const response = await axios.post('/api/logs/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      setUploadSuccess(response.data.message || 'Log file ingested successfully.');
+      const response = await axios.post('/api/logs/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      showToast({ type: 'success', message: response.data.message || 'Log file ingested.' });
       setSelectedFile(null);
       document.getElementById('log-file-input').value = '';
+      setShowUploadPanel(false);
       fetchLogs();
     } catch (err) {
-      setUploadError(err.response?.data?.message || 'Failed to upload log file.');
+      showToast({ type: 'error', message: err.response?.data?.message || 'Upload failed.' });
     } finally {
       setUploading(false);
     }
   };
 
-  // ─── Delete log (unchanged) ───────────────────────────────────────────────
-  const handleDeleteLog = async (id, e) => {
-    e.stopPropagation();
-    if (!window.confirm('Delete this log entry?')) return;
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      await axios.delete(`/api/logs/${id}`);
+      await axios.delete(`/api/logs/${deleteTarget.id}`);
+      showToast({ type: 'success', message: 'Log record deleted.' });
+      setDeleteTarget(null);
+      if (selectedLog?.id === deleteTarget.id) setSelectedLog(null);
       fetchLogs();
     } catch {
-      alert('Failed to delete log.');
+      showToast({ type: 'error', message: 'Failed to delete log.' });
+    } finally {
+      setDeleting(false);
     }
   };
 
-  // ─── Saved queries CRUD ──────────────────────────────────────────────────
+  // ── Saved queries ─────────────────────────────────────────────────────────
+  const activeFilterCount = [search, systemType, isAnomaly, severity, startDate, endDate].filter(Boolean).length;
+
   const handleSaveQuery = () => {
     const name = queryName.trim() || `Query ${savedQueries.length + 1}`;
-    const newQuery = {
-      id: Date.now(),
-      name,
-      filters: { search, systemType, isAnomaly, severity, startDate, endDate },
-    };
-    const updated = [newQuery, ...savedQueries].slice(0, 20);
+    const newQ = { id: Date.now(), name, filters: { search, systemType, isAnomaly, severity, startDate, endDate } };
+    const updated = [newQ, ...savedQueries].slice(0, 20);
     setSavedQueries(updated);
     persistSavedQueries(updated);
     setQueryName('');
@@ -184,12 +229,8 @@ export default function Logs() {
 
   const handleLoadQuery = (q) => {
     const { search: s, systemType: st, isAnomaly: ia, severity: sv, startDate: sd, endDate: ed } = q.filters;
-    setSearch(s ?? '');
-    setSystemType(st ?? '');
-    setIsAnomaly(ia ?? '');
-    setSeverity(sv ?? '');
-    setStartDate(sd ?? '');
-    setEndDate(ed ?? '');
+    setSearch(s ?? ''); setSystemType(st ?? ''); setIsAnomaly(ia ?? '');
+    setSeverity(sv ?? ''); setStartDate(sd ?? ''); setEndDate(ed ?? '');
     setShowSavedPanel(false);
   };
 
@@ -199,95 +240,130 @@ export default function Logs() {
     persistSavedQueries(updated);
   };
 
-  // ─── Active filter count ──────────────────────────────────────────────────
-  const activeFilterCount = [search, systemType, isAnomaly, severity, startDate, endDate].filter(Boolean).length;
-
+  // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+    <div className="space-y-5 sc-fade-in">
+
+      {/* ── Page header ─────────────────────────────────────────────────── */}
+      <div className="sc-panel flex flex-col gap-4 p-6 xl:flex-row xl:items-center xl:justify-between">
         <div>
-          <h1 className="text-3xl font-extrabold text-white tracking-wide">Log Management</h1>
-          <p className="text-sm text-gray-400 mt-1 font-mono">
-            Collect, ingest, search, and analyze log files from Windows, Linux, network firewalls, and servers
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="sc-badge border-sky-500/20 bg-sky-500/10 text-sky-300">Log Explorer</span>
+            <span className="sc-badge border-white/10 bg-white/5 text-slate-300">Security Logs</span>
+            {isAnomaly === 'true' && (
+              <span className="sc-badge border-red-500/20 bg-red-500/10 text-red-300">Anomaly Filter Active</span>
+            )}
+          </div>
+          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-white">Log Management</h1>
+          <p className="mt-1 text-sm text-slate-400">
+            Ingest, search, and analyze security logs from Windows, Linux, firewalls, and network devices.
           </p>
         </div>
-        {/* Saved Queries toggle */}
-        <button
-          onClick={() => setShowSavedPanel((v) => !v)}
-          className={`flex items-center gap-2 rounded-lg border px-4 py-2.5 text-xs font-mono font-semibold transition cursor-pointer ${
-            showSavedPanel
-              ? 'border-sky-500/40 bg-sky-500/10 text-sky-300'
-              : 'border-dark-border bg-slate-800 text-gray-300 hover:bg-slate-700 hover:text-white'
-          }`}
-        >
-          <Bookmark className="w-3.5 h-3.5" />
-          Saved Queries
-          {savedQueries.length > 0 && (
-            <span className="rounded-full bg-sky-500/20 px-1.5 py-0.5 text-[9px] text-sky-300 font-bold">
-              {savedQueries.length}
-            </span>
-          )}
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => setShowSavedPanel((v) => !v)}
+            className={`c-p flex items-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-semibold transition ${
+              showSavedPanel
+                ? 'border-sky-400/40 bg-sky-500/15 text-sky-300'
+                : 'border-white/8 bg-white/5 text-slate-400 hover:border-white/15 hover:text-white'
+            }`}
+          >
+            <Bookmark className="h-3.5 w-3.5" />
+            Saved Queries
+            {savedQueries.length > 0 && (
+              <span className="rounded-full bg-sky-500/20 px-1.5 py-0.5 text-[9px] text-sky-300 font-bold">
+                {savedQueries.length}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setShowUploadPanel((v) => !v)}
+            className={`c-p flex items-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-semibold transition ${
+              showUploadPanel
+                ? 'border-emerald-400/40 bg-emerald-500/15 text-emerald-300'
+                : 'border-white/8 bg-white/5 text-slate-400 hover:border-white/15 hover:text-white'
+            }`}
+          >
+            <Upload className="h-3.5 w-3.5" />
+            Ingest Logs
+          </button>
+          <button
+            onClick={fetchLogs}
+            disabled={loading}
+            className="c-p sc-button-secondary px-4 py-2.5 text-xs font-semibold"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
+        </div>
       </div>
 
-      {/* Saved Queries Panel */}
+      {/* ── Mini stat cards ──────────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {[
+          { label: 'Total Logs',  value: stats.total,        icon: FileText,    color: 'text-white',        bg: 'bg-white/5',        border: 'border-white/8'        },
+          { label: 'Anomalies',   value: stats.anomalies,    icon: AlertTriangle,color:'text-red-300',       bg: 'bg-red-500/10',     border: 'border-red-500/20'     },
+          { label: 'Normal',      value: stats.normal,       icon: ShieldCheck, color: 'text-emerald-300',  bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+          { label: 'Anomaly Rate',value: `${stats.anomalyPct}%`, icon: Activity, color: stats.anomalyPct > 30 ? 'text-red-300' : stats.anomalyPct > 10 ? 'text-amber-300' : 'text-emerald-300', bg: 'bg-white/5', border: 'border-white/8' },
+        ].map(({ label, value, icon: Icon, color, bg, border }) => (
+          <div key={label} className={`sc-card flex items-center justify-between p-4 ${bg} ${border}`}>
+            <div>
+              <p className="sc-text-kicker">{label}</p>
+              <h3 className={`mt-1 text-2xl font-bold ${color}`}>{value}</h3>
+            </div>
+            <Icon className={`h-6 w-6 ${color} opacity-40`} />
+          </div>
+        ))}
+      </div>
+
+      {/* ── Saved Queries Panel ───────────────────────────────────────────── */}
       {showSavedPanel && (
-        <div className="glass-card border border-dark-border p-5">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-bold text-white flex items-center gap-2">
-              <BookmarkPlus className="w-4 h-4 text-sky-400" />
+        <div className="sc-panel p-5">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="flex items-center gap-2 text-sm font-bold text-white">
+              <BookmarkPlus className="h-4 w-4 text-sky-400" />
               Saved Filter Presets
             </h2>
-            <button onClick={() => setShowSavedPanel(false)} className="text-gray-400 hover:text-white cursor-pointer">
-              <X className="w-4 h-4" />
+            <button onClick={() => setShowSavedPanel(false)} className="c-p text-slate-400 hover:text-white">
+              <X className="h-4 w-4" />
             </button>
           </div>
-
-          {/* Save current filters */}
-          <div className="flex gap-2 mb-4">
+          <div className="mb-4 flex gap-2">
             <input
               type="text"
               value={queryName}
               onChange={(e) => setQueryName(e.target.value)}
               placeholder="Query name (optional)"
-              className="flex-1 px-3 py-2 rounded-lg glass-input text-xs"
+              className="glass-input flex-1 px-4 py-2.5 text-xs"
             />
             <button
               onClick={handleSaveQuery}
               disabled={activeFilterCount === 0}
-              className="flex items-center gap-1.5 bg-primary text-black font-semibold text-xs px-4 py-2 rounded-lg hover:bg-primary-hover transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              className="c-p sc-button-primary px-4 py-2.5 text-xs font-semibold disabled:opacity-40"
             >
-              <BookmarkPlus className="w-3.5 h-3.5" />
+              <BookmarkPlus className="h-3.5 w-3.5" />
               Save Current
             </button>
           </div>
-
           {savedQueries.length === 0 ? (
-            <p className="text-xs font-mono text-gray-500 text-center py-4">
+            <p className="py-4 text-center text-xs font-mono text-slate-500">
               No saved queries yet. Apply filters then click Save Current.
             </p>
           ) : (
-            <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+            <div className="max-h-52 space-y-2 overflow-y-auto pr-1">
               {savedQueries.map((q) => (
-                <div
-                  key={q.id}
-                  className="flex items-center justify-between rounded-xl border border-dark-border bg-white/3 px-3 py-2 text-xs font-mono"
-                >
+                <div key={q.id} className="flex items-center justify-between rounded-xl border border-white/8 bg-white/3 px-3 py-2">
                   <button
                     onClick={() => handleLoadQuery(q)}
-                    className="flex-1 text-left text-slate-200 hover:text-sky-300 transition cursor-pointer truncate"
+                    className="c-p flex-1 truncate text-left text-xs font-mono text-slate-200 transition hover:text-sky-300"
                   >
                     {q.name}
-                    <span className="ml-2 text-[10px] text-gray-600">
+                    <span className="ml-2 text-[10px] text-slate-600">
                       {Object.values(q.filters).filter(Boolean).length} filters
                     </span>
                   </button>
-                  <button
-                    onClick={() => handleDeleteQuery(q.id)}
-                    className="ml-2 text-red-400 hover:text-red-300 p-1 hover:bg-red-500/10 rounded cursor-pointer"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
+                  <button onClick={() => handleDeleteQuery(q.id)} className="c-p ml-2 rounded p-1 text-red-400 hover:bg-red-500/10">
+                    <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
               ))}
@@ -296,347 +372,324 @@ export default function Logs() {
         </div>
       )}
 
-      {/* Main Grid: Upload & Filters */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Ingest Panel (unchanged from original) */}
-        <div className="glass-card p-6 border border-dark-border lg:col-span-1 h-fit">
-          <h2 className="text-md font-bold text-white mb-4 flex items-center space-x-2">
-            <Upload className="w-5 h-5 text-primary" />
-            <span>Ingest Log File</span>
-          </h2>
-          <form onSubmit={handleUploadSubmit} className="space-y-4">
-            {uploadError && (
-              <div className="p-2.5 bg-red-500/10 border border-red-500/25 text-red-400 rounded-lg text-xs flex items-center space-x-2">
-                <AlertTriangle className="w-4 h-4 shrink-0" />
-                <span className="truncate">{uploadError}</span>
-              </div>
-            )}
-            {uploadSuccess && (
-              <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 rounded-lg text-xs flex items-center space-x-2">
-                <CheckCircle2 className="w-4 h-4 shrink-0" />
-                <span className="truncate">{uploadSuccess}</span>
-              </div>
-            )}
-
-            <div>
-              <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-2">
+      {/* ── Upload Panel ──────────────────────────────────────────────────── */}
+      {showUploadPanel && (
+        <div className="sc-panel p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="flex items-center gap-2 text-sm font-bold text-white">
+              <Upload className="h-4 w-4 text-emerald-400" />
+              Ingest Log File
+            </h2>
+            <button onClick={() => setShowUploadPanel(false)} className="c-p text-slate-400 hover:text-white">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <form onSubmit={handleUploadSubmit} className="flex flex-col gap-4 sm:flex-row sm:items-end">
+            <div className="flex-1">
+              <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">
                 Log Origin System
               </label>
-              <select
-                value={uploadType}
-                onChange={(e) => setUploadType(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg glass-input text-xs bg-slate-900 text-white cursor-pointer"
+              <div className="flex flex-wrap gap-2">
+                {SYSTEM_TYPES.map((type) => {
+                  const style = SYSTEM_STYLES[type];
+                  const active = uploadType === type;
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setUploadType(type)}
+                      className={`c-p rounded-xl border px-3 py-2 text-[10px] font-bold font-mono tracking-[0.15em] transition ${
+                        active ? `${style.border} ${style.bg} ${style.text}` : 'border-white/8 bg-white/5 text-slate-400 hover:border-white/15'
+                      }`}
+                    >
+                      {type}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+              <div>
+                <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">
+                  Log File (.log, .txt)
+                </label>
+                <input
+                  id="log-file-input"
+                  type="file"
+                  accept=".log,.txt"
+                  onChange={handleFileChange}
+                  className="w-full text-xs text-slate-400 file:mr-3 file:rounded-lg file:border-0 file:bg-white/8 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-slate-300 hover:file:bg-white/12 file:cursor-pointer cursor-pointer"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={uploading || !selectedFile}
+                className="c-p sc-button-primary px-5 py-2.5 text-xs font-semibold disabled:opacity-40"
               >
-                <option value="WINDOWS">WINDOWS</option>
-                <option value="LINUX">LINUX</option>
-                <option value="APACHE">APACHE</option>
-                <option value="NGINX">NGINX</option>
-                <option value="FIREWALL">FIREWALL</option>
-                <option value="ROUTER">ROUTER</option>
-                <option value="IDS">IDS</option>
-                <option value="ENDPOINT">ENDPOINT</option>
-              </select>
+                {uploading ? (
+                  <><div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current/30 border-t-current" /><span>Uploading...</span></>
+                ) : (
+                  <><Upload className="h-3.5 w-3.5" /><span>Ingest Records</span></>
+                )}
+              </button>
             </div>
-
-            <div>
-              <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-2">
-                Select Log File (.log, .txt)
-              </label>
-              <input
-                id="log-file-input"
-                type="file"
-                accept=".log,.txt"
-                onChange={handleFileChange}
-                className="w-full text-xs text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-white hover:file:bg-slate-700 cursor-pointer"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={uploading || !selectedFile}
-              className="w-full bg-primary text-black font-semibold text-xs py-2.5 rounded-lg hover:bg-primary-hover transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center space-x-2 shadow-md shadow-primary/10"
-            >
-              {uploading ? (
-                <>
-                  <div className="w-3.5 h-3.5 border-2 border-black/25 border-t-black rounded-full animate-spin" />
-                  <span>Uploading...</span>
-                </>
-              ) : (
-                <>
-                  <Upload className="w-3.5 h-3.5" />
-                  <span>Ingest Records</span>
-                </>
-              )}
-            </button>
           </form>
         </div>
+      )}
 
-        {/* Filter Panel — enhanced */}
-        <div className="glass-card p-6 border border-dark-border lg:col-span-2 space-y-5">
-          <h2 className="text-md font-bold text-white flex items-center space-x-2">
-            <Filter className="w-5 h-5 text-secondary" />
-            <span>Search &amp; Filter</span>
+      {/* ── Filter bar ────────────────────────────────────────────────────── */}
+      <div className="sc-panel p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
+            <Filter className="h-4 w-4 text-slate-400" />
+            Search & Filter
             {activeFilterCount > 0 && (
-              <span className="rounded-full bg-sky-500/20 px-1.5 py-0.5 text-[9px] text-sky-300 font-bold ml-1">
+              <span className="rounded-full bg-sky-500/20 px-1.5 py-0.5 text-[9px] font-bold text-sky-300">
                 {activeFilterCount} active
               </span>
             )}
           </h2>
+          {activeFilterCount > 0 && (
+            <button onClick={handleResetFilters} className="c-p text-[10px] font-mono text-red-400 hover:text-red-300 transition">
+              Clear all
+            </button>
+          )}
+        </div>
 
-          <form onSubmit={handleSearchSubmit} className="space-y-4">
-            {/* Row 1: Search + System Type */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-2">
-                  Raw Data Search
-                </label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 w-4 h-4 text-gray-500" />
-                  <input
-                    type="text"
-                    placeholder="Search logs (IP, User, Payload...)"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 rounded-lg glass-input text-xs"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-2">
-                  System Type
-                </label>
-                <select
-                  value={systemType}
-                  onChange={(e) => setSystemType(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg glass-input text-xs bg-slate-900 text-white cursor-pointer"
-                >
-                  <option value="">All Systems</option>
-                  <option value="WINDOWS">WINDOWS</option>
-                  <option value="LINUX">LINUX</option>
-                  <option value="APACHE">APACHE</option>
-                  <option value="NGINX">NGINX</option>
-                  <option value="FIREWALL">FIREWALL</option>
-                  <option value="ROUTER">ROUTER</option>
-                  <option value="IDS">IDS</option>
-                  <option value="ENDPOINT">ENDPOINT</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Row 2: Anomaly + Date Range toggle */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-2">
-                  AI Anomaly Status
-                </label>
-                <select
-                  value={isAnomaly}
-                  onChange={(e) => setIsAnomaly(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg glass-input text-xs bg-slate-900 text-white cursor-pointer"
-                >
-                  <option value="">All Logs</option>
-                  <option value="true">Detected Anomalies Only</option>
-                  <option value="false">Normal Logs Only</option>
-                </select>
-              </div>
-
-              {/* Date range toggle button */}
-              <div className="flex items-end">
-                <button
-                  type="button"
-                  onClick={() => setShowDatePanel((v) => !v)}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg glass-input text-xs font-mono transition cursor-pointer ${
-                    startDate || endDate
-                      ? 'border-sky-500/50 text-sky-300'
-                      : 'text-gray-400 hover:text-white'
-                  }`}
-                >
-                  <span className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    {startDate || endDate
-                      ? `${startDate ? new Date(startDate).toLocaleDateString() : '—'} → ${endDate ? new Date(endDate).toLocaleDateString() : '—'}`
-                      : 'Date Range (all time)'}
-                  </span>
-                  {showDatePanel ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                </button>
-              </div>
-            </div>
-
-            {/* Date range inputs (collapsible) */}
-            {showDatePanel && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 rounded-xl border border-dark-border bg-slate-900/40 p-4">
-                <div>
-                  <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-2">
-                    From
-                  </label>
-                  <input
-                    type="datetime-local"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg glass-input text-xs text-gray-300 cursor-pointer"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-2">
-                    To
-                  </label>
-                  <input
-                    type="datetime-local"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg glass-input text-xs text-gray-300 cursor-pointer"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Severity chips */}
-            <div>
-              <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-2">
-                Severity Filter (Risk Score)
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {SEVERITY_CHIPS.map((chip) => (
-                  <button
-                    key={chip.value}
-                    type="button"
-                    onClick={() => setSeverity(chip.value)}
-                    className={`rounded-full border px-3 py-1 text-[10px] font-bold font-mono uppercase tracking-wider transition cursor-pointer ${
-                      severity === chip.value
-                        ? chip.color || 'border-blue-500/40 bg-blue-500/15 text-blue-300'
-                        : 'border-dark-border bg-white/3 text-gray-500 hover:border-white/15 hover:text-gray-300'
-                    }`}
-                  >
-                    {chip.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Action buttons */}
-            <div className="flex items-center gap-2 pt-1 flex-wrap">
-              <button
-                type="submit"
-                className="flex-1 bg-slate-800 text-white border border-dark-border hover:bg-slate-700 text-xs py-2.5 px-4 rounded-lg transition font-mono uppercase tracking-wider cursor-pointer"
-              >
-                Apply Filters
+        <form onSubmit={(e) => { e.preventDefault(); fetchLogs(); }} className="space-y-4">
+          {/* Row 1: Search */}
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+            <input
+              type="text"
+              placeholder="Search logs (IP, user, payload, device...)"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="glass-input w-full px-4 py-2.5 pl-10 text-sm"
+            />
+            {search && (
+              <button type="button" onClick={() => setSearch('')} className="c-p absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white">
+                <X className="h-3.5 w-3.5" />
               </button>
+            )}
+          </div>
+
+          {/* Row 2: System type chips */}
+          <div>
+            <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">System Type</p>
+            <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                onClick={handleResetFilters}
-                className="bg-red-500/10 text-red-400 hover:bg-red-500/20 text-xs py-2.5 px-3 rounded-lg transition font-mono uppercase tracking-wider cursor-pointer"
+                onClick={() => setSystemType('')}
+                className={`c-p rounded-xl border px-3 py-2 text-[10px] font-bold font-mono tracking-[0.15em] transition ${
+                  systemType === ''
+                    ? 'border-sky-400/40 bg-sky-500/15 text-sky-300'
+                    : 'border-white/8 bg-white/5 text-slate-400 hover:border-white/15'
+                }`}
               >
-                Reset
+                All {systemCounts && Object.values(systemCounts).reduce((a, b) => a + b, 0) > 0 ? `(${logs.length})` : ''}
               </button>
+              {SYSTEM_TYPES.map((type) => {
+                const style = SYSTEM_STYLES[type];
+                const active = systemType === type;
+                return (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setSystemType(type)}
+                    className={`c-p flex items-center gap-1.5 rounded-xl border px-3 py-2 text-[10px] font-bold font-mono tracking-[0.15em] transition ${
+                      active ? `${style.border} ${style.bg} ${style.text}` : 'border-white/8 bg-white/5 text-slate-400 hover:border-white/15'
+                    }`}
+                  >
+                    {type}
+                    {systemCounts[type] && (
+                      <span className={`rounded-full px-1 py-0.5 text-[9px] ${active ? `${style.bg} ${style.text}` : 'bg-white/8 text-slate-500'}`}>
+                        {systemCounts[type]}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
-          </form>
-        </div>
+          </div>
+
+          {/* Row 3: Anomaly + Date Range */}
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Anomaly toggle chips */}
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">Anomaly:</span>
+              {[
+                { label: 'All', value: '' },
+                { label: 'Anomalies Only', value: 'true' },
+                { label: 'Normal Only',    value: 'false' },
+              ].map(({ label, value }) => (
+                <button
+                  key={value || 'all'}
+                  type="button"
+                  onClick={() => setIsAnomaly(value)}
+                  className={`c-p rounded-xl border px-3 py-2 text-[10px] font-bold font-mono tracking-[0.12em] transition ${
+                    isAnomaly === value
+                      ? value === 'true'  ? 'border-red-400/40 bg-red-500/15 text-red-300'
+                      : value === 'false' ? 'border-emerald-400/40 bg-emerald-500/15 text-emerald-300'
+                      : 'border-sky-400/40 bg-sky-500/15 text-sky-300'
+                      : 'border-white/8 bg-white/5 text-slate-400 hover:border-white/15'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {/* Date range toggle */}
+            <button
+              type="button"
+              onClick={() => setShowDatePanel((v) => !v)}
+              className={`c-p flex items-center gap-2 rounded-xl border px-3 py-2 text-[10px] font-mono font-bold tracking-[0.12em] transition ${
+                startDate || endDate
+                  ? 'border-sky-400/40 bg-sky-500/15 text-sky-300'
+                  : 'border-white/8 bg-white/5 text-slate-400 hover:border-white/15'
+              }`}
+            >
+              <Calendar className="h-3.5 w-3.5" />
+              {startDate || endDate
+                ? `${startDate ? new Date(startDate).toLocaleDateString() : '—'} → ${endDate ? new Date(endDate).toLocaleDateString() : '—'}`
+                : 'Date Range'}
+              {showDatePanel ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+            </button>
+          </div>
+
+          {/* Date range inputs */}
+          {showDatePanel && (
+            <div className="grid grid-cols-1 gap-4 rounded-xl border border-white/8 bg-white/3 p-4 md:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">From</label>
+                <input type="datetime-local" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="glass-input w-full px-4 py-2.5 text-xs text-slate-300" />
+              </div>
+              <div>
+                <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">To</label>
+                <input type="datetime-local" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="glass-input w-full px-4 py-2.5 text-xs text-slate-300" />
+              </div>
+            </div>
+          )}
+
+          {/* Severity chips */}
+          <div>
+            <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">Risk Severity</p>
+            <div className="flex flex-wrap gap-2">
+              {SEVERITY_CHIPS.map((chip) => (
+                <button
+                  key={chip.value || 'all'}
+                  type="button"
+                  onClick={() => setSeverity(chip.value)}
+                  className={`c-p rounded-xl border px-3 py-2 text-[10px] font-bold font-mono tracking-[0.15em] transition ${
+                    severity === chip.value
+                      ? chip.border && chip.bg && chip.text
+                        ? `${chip.border} ${chip.bg} ${chip.text}`
+                        : 'border-sky-400/40 bg-sky-500/15 text-sky-300'
+                      : 'border-white/8 bg-white/5 text-slate-400 hover:border-white/15'
+                  }`}
+                >
+                  {chip.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex gap-2 pt-1">
+            <button type="submit" className="c-p sc-button-secondary flex-1 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.2em]">
+              Apply Filters
+            </button>
+          </div>
+        </form>
       </div>
 
-      {/* Logs Table */}
-      <div className="glass-card border border-dark-border overflow-hidden">
-        <div className="p-4 border-b border-dark-border bg-slate-900/35 flex justify-between items-center">
+      {/* ── Logs Table ────────────────────────────────────────────────────── */}
+      <div className="sc-panel overflow-hidden">
+        <div className="flex items-center justify-between border-b border-white/8 bg-white/3 px-6 py-3">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono font-semibold text-white">
-              Ingested Security Logs ({displayedLogs.length}
-              {displayedLogs.length !== logs.length && ` / ${logs.length}`})
+            <span className="text-xs font-mono font-semibold text-slate-300">
+              Security Log Records ({displayedLogs.length}{displayedLogs.length !== logs.length ? ` / ${logs.length}` : ''})
             </span>
             {severity && (
-              <span className="sc-badge border-sky-500/20 bg-sky-500/10 text-sky-300">
+              <span className={`sc-badge ${SEVERITY_CHIPS.find((c) => c.value === severity)?.border ?? ''} ${SEVERITY_CHIPS.find((c) => c.value === severity)?.bg ?? ''} ${SEVERITY_CHIPS.find((c) => c.value === severity)?.text ?? ''}`}>
                 {SEVERITY_CHIPS.find((c) => c.value === severity)?.label} severity
               </span>
             )}
           </div>
-          <button
-            onClick={fetchLogs}
-            className="text-[10px] font-mono bg-slate-800 hover:bg-slate-700 text-gray-300 px-3 py-1.5 rounded border border-dark-border transition cursor-pointer"
-          >
-            Refresh Logs
-          </button>
         </div>
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-24">
-            <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-4" />
-            <p className="text-xs font-mono text-gray-400">Syncing database directory...</p>
+            <div className="mb-4 h-8 w-8 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
+            <p className="text-xs font-mono text-slate-400">Syncing log database...</p>
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-16">
+            <AlertTriangle className="mb-3 h-8 w-8 text-red-300" />
+            <p className="text-sm font-mono text-red-300">{error}</p>
           </div>
         ) : displayedLogs.length === 0 ? (
-          <div className="py-24 text-center">
-            <AlertTriangle className="w-8 h-8 text-yellow-500 mx-auto mb-3 animate-pulse" />
-            <p className="text-sm font-mono text-gray-400 mb-1">No logs found in this query.</p>
-            <p className="text-xs text-gray-500 font-mono">
-              Upload a log file or send requests to trigger ingestion.
-            </p>
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <Zap className="mb-3 h-10 w-10 text-slate-700" />
+            <p className="text-sm font-mono text-slate-400">No log records match your filters.</p>
+            <p className="text-xs font-mono text-slate-600 mt-1">Upload a log file or adjust your search.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-dark-border bg-slate-900/50 text-[10px] uppercase font-mono tracking-wider text-gray-400">
-                  <th className="py-4 px-6">Timestamp</th>
-                  <th className="py-4 px-6">System</th>
-                  <th className="py-4 px-6">Source IP</th>
-                  <th className="py-4 px-6">Identity</th>
-                  <th className="py-4 px-6">AI Status</th>
-                  <th className="py-4 px-6">Risk Score</th>
-                  <th className="py-4 px-6">Raw Log Payload</th>
-                  <th className="py-4 px-6 text-right">Delete</th>
+                <tr className="border-b border-white/8 bg-white/3 text-[10px] uppercase font-mono tracking-[0.15em] text-slate-500">
+                  <th className="py-3.5 px-5">Timestamp</th>
+                  <th className="py-3.5 px-5">System</th>
+                  <th className="py-3.5 px-5">Source IP</th>
+                  <th className="py-3.5 px-5">Identity</th>
+                  <th className="py-3.5 px-5">AI Status</th>
+                  <th className="py-3.5 px-5">Risk</th>
+                  <th className="py-3.5 px-5">Raw Payload</th>
+                  <th className="py-3.5 px-5 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-dark-border/40 text-xs font-mono">
+              <tbody className="divide-y divide-white/5 text-xs font-mono">
                 {displayedLogs.map((item) => (
                   <tr
                     key={item.id}
                     onClick={() => setSelectedLog(item)}
-                    className="hover:bg-slate-900/25 transition-colors duration-150 cursor-pointer"
+                    className="cursor-pointer transition-colors hover:bg-white/3"
                   >
-                    <td className="py-4 px-6 text-gray-400 whitespace-nowrap">
+                    <td className="py-4 px-5 text-slate-400 whitespace-nowrap">
                       {new Date(item.timestamp).toLocaleString()}
                     </td>
-                    <td className="py-4 px-6">
-                      <span className="bg-slate-800 text-gray-200 border border-dark-border px-2 py-0.5 rounded text-[10px] font-bold">
-                        {item.systemType}
-                      </span>
+                    <td className="py-4 px-5">
+                      <SystemTypeBadge type={item.systemType} />
                     </td>
-                    <td className="py-4 px-6 text-gray-300">{item.ipAddress}</td>
-                    <td className="py-4 px-6 text-gray-400 text-[11px] truncate max-w-[120px]" title={item.userEmail}>
+                    <td className="py-4 px-5 text-slate-300">{item.ipAddress}</td>
+                    <td className="py-4 px-5 text-slate-400 max-w-[120px] truncate" title={item.userEmail}>
                       {item.userEmail}
                     </td>
-                    <td className="py-4 px-6">
+                    <td className="py-4 px-5">
                       {item.anomaly ? (
-                        <span className="inline-flex items-center text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20 text-[10px] font-bold">
-                          <AlertTriangle className="w-3 h-3 mr-1" />
-                          ANOMALY
+                        <span className="inline-flex items-center gap-1 rounded-full border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-[9px] font-bold text-red-300">
+                          <AlertTriangle className="h-2.5 w-2.5" /> ANOMALY
                         </span>
                       ) : (
-                        <span className="inline-flex items-center text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 text-[10px] font-bold">
-                          <ShieldCheck className="w-3 h-3 mr-1" />
-                          NORMAL
+                        <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-bold text-emerald-300">
+                          <ShieldCheck className="h-2.5 w-2.5" /> NORMAL
                         </span>
                       )}
                     </td>
-                    <td className="py-4 px-6 font-bold">
-                      <span
-                        className={
-                          item.riskScore >= 0.85
-                            ? 'text-red-400'
-                            : item.riskScore >= 0.65
-                            ? 'text-amber-400'
-                            : item.riskScore >= 0.35
-                            ? 'text-sky-400'
-                            : 'text-emerald-400'
-                        }
-                      >
-                        {Math.round(item.riskScore * 100)}%
-                      </span>
+                    <td className="py-4 px-5">
+                      <RiskBar score={item.riskScore} />
                     </td>
-                    <td className="py-4 px-6 text-gray-400 max-w-xs truncate">{item.rawMessage}</td>
-                    <td className="py-4 px-6 text-right" onClick={(e) => e.stopPropagation()}>
+                    <td className="py-4 px-5 text-slate-400 max-w-[200px] truncate" title={item.rawMessage}>
+                      {item.rawMessage}
+                    </td>
+                    <td className="py-4 px-5 text-right" onClick={(e) => e.stopPropagation()}>
                       <button
-                        onClick={(e) => handleDeleteLog(item.id, e)}
-                        className="p-1.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded hover:bg-red-500/25 transition cursor-pointer"
+                        onClick={() => setDeleteTarget(item)}
+                        className="c-p rounded-lg border border-red-500/20 bg-red-500/10 p-1.5 text-red-400 transition hover:bg-red-500/25"
+                        title="Delete log"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </td>
                   </tr>
@@ -647,80 +700,137 @@ export default function Logs() {
         )}
       </div>
 
-      {/* Log Detail Modal (unchanged from original) */}
+      {/* ── Log Detail Drawer ─────────────────────────────────────────────── */}
       {selectedLog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-lg glass-card p-6 border border-dark-border relative animate-scale-up">
-            <button
-              onClick={() => setSelectedLog(null)}
-              className="absolute right-4 top-4 text-gray-400 hover:text-white transition cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-            <h3 className="text-lg font-bold text-white mb-4 flex items-center space-x-2">
-              <FileText className="w-5 h-5 text-primary" />
-              <span>Security Log Details</span>
-            </h3>
+        <div className="fixed inset-0 z-50 flex">
+          <div className="flex-1 bg-black/50 backdrop-blur-sm" onClick={() => setSelectedLog(null)} />
+          <div
+            className="w-full max-w-md overflow-y-auto border-l border-white/8 bg-[#0b1220] sc-scale-in"
+            style={{ boxShadow: '-24px 0 60px rgba(0,0,0,0.4)' }}
+          >
+            {/* Accent bar */}
+            <div
+              className="h-1 w-full"
+              style={{
+                background: `linear-gradient(90deg, ${
+                  selectedLog.anomaly ? '#ef4444' : '#22c55e'
+                }, transparent)`,
+              }}
+            />
+            <div className="space-y-5 p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0 flex-1">
+                  <div className="mb-2 flex flex-wrap items-center gap-2">
+                    <SystemTypeBadge type={selectedLog.systemType} />
+                    {selectedLog.anomaly ? (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-[9px] font-bold text-red-300">
+                        <AlertTriangle className="h-2.5 w-2.5" /> ANOMALY
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-bold text-emerald-300">
+                        <ShieldCheck className="h-2.5 w-2.5" /> NORMAL
+                      </span>
+                    )}
+                  </div>
+                  <h2 className="font-bold text-white text-sm">Security Log Details</h2>
+                  <p className="text-[10px] font-mono text-slate-500 mt-0.5 break-all">{selectedLog.id}</p>
+                </div>
+                <button onClick={() => setSelectedLog(null)} className="c-p mt-1 text-slate-400 transition hover:text-white">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
 
-            <div className="space-y-3 font-mono text-xs text-gray-300">
-              <div className="flex border-b border-dark-border/40 py-2">
-                <span className="w-32 text-gray-500 uppercase">Log ID:</span>
-                <span className="text-white select-all">{selectedLog.id}</span>
+              {/* Meta grid */}
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { icon: Clock,   label: 'Timestamp', value: new Date(selectedLog.timestamp).toLocaleString() },
+                  { icon: Network, label: 'IP : Port',  value: `${selectedLog.ipAddress} : ${selectedLog.port}` },
+                  { icon: Shield,  label: 'Protocol',  value: selectedLog.protocol || '—' },
+                  { icon: Globe,   label: 'Country',   value: selectedLog.country   || 'Unknown' },
+                  { icon: Hash,    label: 'Bytes',     value: selectedLog.bytes != null ? `${selectedLog.bytes.toLocaleString()} B` : '—' },
+                  { icon: FileText,label: 'Device',    value: selectedLog.device    || '—' },
+                ].map(({ icon: Icon, label, value }) => (
+                  <div key={label} className="rounded-xl border border-white/8 bg-white/5 p-3">
+                    <div className="mb-1 flex items-center gap-1.5">
+                      <Icon className="h-3 w-3 text-slate-500" />
+                      <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-slate-500">{label}</span>
+                    </div>
+                    <p className="text-xs font-mono font-semibold text-slate-200 break-all">{value}</p>
+                  </div>
+                ))}
               </div>
-              <div className="flex border-b border-dark-border/40 py-2">
-                <span className="w-32 text-gray-500 uppercase">Timestamp:</span>
-                <span>{new Date(selectedLog.timestamp).toLocaleString()}</span>
+
+              {/* Identity */}
+              <div className="rounded-xl border border-white/8 bg-white/5 p-3">
+                <p className="mb-1 text-[9px] font-semibold uppercase tracking-[0.2em] text-slate-500">Identity</p>
+                <p className="text-xs font-mono font-semibold text-slate-200">{selectedLog.userEmail}</p>
               </div>
-              <div className="flex border-b border-dark-border/40 py-2">
-                <span className="w-32 text-gray-500 uppercase">System Type:</span>
-                <span className="font-bold text-primary">{selectedLog.systemType}</span>
+
+              {/* AI Analysis */}
+              <div className={`rounded-xl border p-3 ${selectedLog.anomaly ? 'border-red-500/20 bg-red-500/8' : 'border-emerald-500/20 bg-emerald-500/8'}`}>
+                <p className={`mb-2 text-[9px] font-semibold uppercase tracking-[0.2em] ${selectedLog.anomaly ? 'text-red-400' : 'text-emerald-400'}`}>
+                  AI Analysis
+                </p>
+                <div className="flex flex-wrap items-center gap-4 text-xs font-mono">
+                  <div>
+                    <span className="text-slate-500">Risk Score: </span>
+                    <span className={`font-bold ${selectedLog.riskScore >= 0.85 ? 'text-red-400' : selectedLog.riskScore >= 0.65 ? 'text-amber-400' : selectedLog.riskScore >= 0.35 ? 'text-sky-400' : 'text-emerald-400'}`}>
+                      {Math.round(selectedLog.riskScore * 100)}%
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Confidence: </span>
+                    <span className="font-bold text-slate-200">{Math.round(selectedLog.confidenceScore * 100)}%</span>
+                  </div>
+                </div>
               </div>
-              <div className="flex border-b border-dark-border/40 py-2">
-                <span className="w-32 text-gray-500 uppercase">IP &amp; Port:</span>
-                <span>
-                  {selectedLog.ipAddress} : {selectedLog.port} ({selectedLog.protocol})
-                </span>
-              </div>
-              <div className="flex border-b border-dark-border/40 py-2">
-                <span className="w-32 text-gray-500 uppercase">Identity:</span>
-                <span>
-                  {selectedLog.userEmail} / {selectedLog.device}
-                </span>
-              </div>
-              <div className="flex border-b border-dark-border/40 py-2">
-                <span className="w-32 text-gray-500 uppercase">Country:</span>
-                <span>{selectedLog.country}</span>
-              </div>
-              <div className="flex border-b border-dark-border/40 py-2">
-                <span className="w-32 text-gray-500 uppercase">Bandwidth:</span>
-                <span>{selectedLog.bytes} Bytes</span>
-              </div>
-              <div className="flex border-b border-dark-border/40 py-2">
-                <span className="w-32 text-gray-500 uppercase">AI Score:</span>
-                <span className="flex items-center space-x-2">
-                  <span className={`font-bold ${selectedLog.anomaly ? 'text-red-400' : 'text-emerald-400'}`}>
-                    {selectedLog.anomaly ? 'ANOMALY' : 'NORMAL'}
-                  </span>
-                  <span className="text-gray-500">|</span>
-                  <span>Confidence: {Math.round(selectedLog.confidenceScore * 100)}%</span>
-                  <span className="text-gray-500">|</span>
-                  <span>Risk Score: {Math.round(selectedLog.riskScore * 100)}%</span>
-                </span>
-              </div>
-              <div className="flex flex-col py-2">
-                <span className="text-gray-500 uppercase mb-2">Raw Message:</span>
-                <pre className="p-3 bg-black/40 rounded-lg text-[10px] text-gray-300 whitespace-pre-wrap break-all max-h-40 overflow-y-auto border border-dark-border/40">
+
+              {/* Raw message */}
+              <div>
+                <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">Raw Message</p>
+                <pre className="max-h-40 overflow-y-auto rounded-xl border border-white/8 bg-black/40 p-3 text-[10px] text-slate-300 whitespace-pre-wrap break-all">
                   {selectedLog.rawMessage}
                 </pre>
               </div>
-            </div>
 
-            <div className="flex justify-end pt-4">
+              {/* Delete from drawer */}
+              <div className="border-t border-white/8 pt-3">
+                <button
+                  onClick={() => { setSelectedLog(null); setDeleteTarget(selectedLog); }}
+                  className="c-p sc-button-danger w-full px-4 py-2.5 text-xs font-semibold"
+                >
+                  <Trash2 className="h-3.5 w-3.5" /> Delete Log Record
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Delete Confirm Modal ──────────────────────────────────────────── */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="sc-modal w-full max-w-sm p-6 text-center sc-scale-in">
+            <Trash2 className="mx-auto mb-4 h-12 w-12 text-red-300" />
+            <h3 className="mb-2 text-lg font-bold text-white">Delete Log Record?</h3>
+            <p className="mb-1 text-xs font-mono text-slate-400">This will permanently remove:</p>
+            <p className="mb-6 font-mono text-xs font-bold text-slate-200 break-all">
+              {deleteTarget.ipAddress} · {deleteTarget.systemType} · {new Date(deleteTarget.timestamp).toLocaleString()}
+            </p>
+            <div className="flex gap-2">
               <button
-                onClick={() => setSelectedLog(null)}
-                className="px-6 py-2 bg-slate-800 text-gray-400 border border-dark-border hover:bg-slate-700 hover:text-white rounded-lg text-xs font-mono uppercase transition cursor-pointer"
+                onClick={() => setDeleteTarget(null)}
+                disabled={deleting}
+                className="c-p sc-button-secondary flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.22em]"
               >
-                Close View
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                disabled={deleting}
+                className="c-p sc-button-danger flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.22em] disabled:opacity-50"
+              >
+                {deleting ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>
