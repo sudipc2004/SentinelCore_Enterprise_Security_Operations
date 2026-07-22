@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import ChatBot from '../components/ChatBot';
 import {
   Shield,
   Users,
@@ -17,6 +18,7 @@ import {
   FileWarning,
   ShieldAlert,
   Radar,
+  BellDotIcon,
   BellRing,
   Bug,
   Siren,
@@ -90,10 +92,10 @@ export default function ProtectedLayout({ children }) {
     ...(user?.role === 'ADMIN' || user?.role === 'ANALYST'
       ? [{ name: 'Audit Logs', path: '/audit-logs', icon: ScrollText }]
       : []),
-    
+
     { name: 'Log Explorer', path: '/logs', icon: FileText },
-    { name: 'Vulnerabilities', path: '/vulnerabilities', icon: Bug },
     { name: 'Alerts', path: '/alerts', icon: BellRing },
+    { name: 'Vulnerabilities', path: '/vulnerabilities', icon: Bug },
     { name: 'Reports', path: '/reports', icon: FileBarChart },
   ];
 
@@ -200,11 +202,10 @@ export default function ProtectedLayout({ children }) {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col gap-6 lg:ml-0">
-        <header className={`sc-topbar sticky top-0 z-20 transition-all duration-200 flex flex-col gap-4 px-4 py-4 sm:px-6 lg:px-6 ${
-          isScrolled 
-            ? 'mx-0 mt-0 rounded-none border-x-0 border-t-0 bg-[#080b14]/95 backdrop-blur-md shadow-lg shadow-black/30' 
-            : 'mx-4 mt-4 rounded-2xl border lg:mx-0 lg:mt-4'
-        }`}>
+        <header className={`sc-topbar sticky top-0 z-20 transition-all duration-200 flex flex-col gap-4 px-4 py-4 sm:px-6 lg:px-6 ${isScrolled
+          ? 'mx-0 mt-0 rounded-none border-x-0 border-t-0 bg-[#080b14]/95 backdrop-blur-md shadow-lg shadow-black/30'
+          : 'mx-4 mt-4 rounded-2xl border lg:mx-0 lg:mt-4'
+          }`}>
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div className="flex items-start gap-3">
               <button
@@ -228,11 +229,13 @@ export default function ProtectedLayout({ children }) {
                   <span>{currentRoute.name}</span>
                 </div>
               </div>
+
             </div>
+
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/8 pt-4 text-xs text-slate-400">
               <div className="flex flex-wrap items-center gap-2">
+                <BellDotIcon className='text-danger h-7 w-10 cursor-pointer' />
                 <span className="sc-badge border-emerald-500/20 bg-emerald-500/10 text-emerald-300">ONLINE</span>
-                {/* <span className="sc-badge border-sky-500/20 bg-sky-500/10 text-sky-300">JWT-SECURE</span> */}
                 <span className="sc-badge border-white/10 bg-white/5 text-slate-300">{user.role}</span>
                 <span className="sc-badge border-white/10 bg-white/5 text-slate-300">{user.department}</span>
               </div>
@@ -255,6 +258,7 @@ export default function ProtectedLayout({ children }) {
           <div className="mx-auto w-full max-w-[1700px]">{children}</div>
         </main>
       </div>
+      <ChatBot />
     </div>
   );
 }

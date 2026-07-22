@@ -16,6 +16,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 // ─── Severity chip config (maps to riskScore ranges) ────────────────────────
 const SEVERITY_CHIPS = [
@@ -41,7 +42,11 @@ function persistSavedQueries(queries) {
 }
 
 export default function Logs() {
+  const { user } = useAuth();
+  const canDeleteLogs = user?.role === 'ADMIN';
   const [logs, setLogs] = useState([]);
+  const [totalLogs, setTotalLogs] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -53,6 +58,8 @@ export default function Logs() {
   const [startDate, setStartDate] = useState('');      // datetime-local value
   const [endDate, setEndDate] = useState('');          // datetime-local value
   const [showDatePanel, setShowDatePanel] = useState(false);
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(25);
 
   // ─── File Upload ─────────────────────────────────────────────────────────
   const [selectedFile, setSelectedFile] = useState(null);
@@ -70,29 +77,52 @@ export default function Logs() {
   const [showSavedPanel, setShowSavedPanel] = useState(false);
 
   // ─── Fetch ───────────────────────────────────────────────────────────────
-  const fetchLogs = useCallback(async () => {
+  const fetchLogs = useCallback(async (overrides = {}) => {
     setLoading(true);
+    setError('');
     try {
-      const params = {};
-      if (systemType) params.systemType = systemType;
-      if (isAnomaly) params.isAnomaly = isAnomaly === 'true';
-      if (search) params.search = search;
-      if (startDate) params.startDate = new Date(startDate).toISOString();
-      if (endDate)   params.endDate   = new Date(endDate).toISOString();
+      const query = {
+        search,
+        systemType,
+        isAnomaly,
+        startDate,
+        endDate,
+        page,
+        pageSize,
+        ...overrides,
+      };
+      const params = {
+        page: query.page,
+        size: query.pageSize,
+        sortBy: 'timestamp',
+        direction: 'desc',
+      };
+      if (query.systemType) params.systemType = query.systemType;
+      if (query.isAnomaly) params.isAnomaly = query.isAnomaly === 'true';
+      if (query.search) params.search = query.search;
+      if (query.startDate) params.startDate = new Date(query.startDate).toISOString();
+      if (query.endDate) params.endDate = new Date(query.endDate).toISOString();
 
       const response = await axios.get('/api/logs', { params });
-      setLogs(response.data);
+      const payload = response.data;
+      const content = Array.isArray(payload) ? payload : payload.content || [];
+      setLogs(content);
+      setTotalLogs(Array.isArray(payload) ? content.length : payload.totalElements || 0);
+      setTotalPages(Array.isArray(payload) ? 1 : payload.totalPages || 0);
     } catch (err) {
       console.error(err);
-      setError('Failed to fetch security logs database.');
+      setLogs([]);
+      setTotalLogs(0);
+      setTotalPages(0);
+      setError(err.response?.data?.message || 'Failed to fetch security logs database.');
     } finally {
       setLoading(false);
     }
-  }, [systemType, isAnomaly, search, startDate, endDate]);
+  }, [systemType, isAnomaly, search, startDate, endDate, page, pageSize]);
 
   useEffect(() => {
     fetchLogs();
-  }, [systemType, isAnomaly]);   // auto-fetch on dropdown change (same as original)
+  }, [systemType, isAnomaly, page, pageSize]);
 
   // ─── Derived: severity filter applied client-side ────────────────────────
   const displayedLogs = React.useMemo(() => {
@@ -109,17 +139,27 @@ export default function Logs() {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    fetchLogs();
+    setPage(0);
+    fetchLogs({ page: 0 });
   };
 
   const handleResetFilters = () => {
+    const emptyFilters = {
+      search: '',
+      systemType: '',
+      isAnomaly: '',
+      startDate: '',
+      endDate: '',
+      page: 0,
+    };
     setSearch('');
     setSystemType('');
     setIsAnomaly('');
     setSeverity('');
     setStartDate('');
     setEndDate('');
-    fetchLogs();
+    setPage(0);
+    fetchLogs(emptyFilters);
   };
 
   // ─── File upload handlers (unchanged) ────────────────────────────────────
@@ -148,7 +188,8 @@ export default function Logs() {
       setUploadSuccess(response.data.message || 'Log file ingested successfully.');
       setSelectedFile(null);
       document.getElementById('log-file-input').value = '';
-      fetchLogs();
+      setPage(0);
+      fetchLogs({ page: 0 });
     } catch (err) {
       setUploadError(err.response?.data?.message || 'Failed to upload log file.');
     } finally {
@@ -159,12 +200,16 @@ export default function Logs() {
   // ─── Delete log (unchanged) ───────────────────────────────────────────────
   const handleDeleteLog = async (id, e) => {
     e.stopPropagation();
+    if (!canDeleteLogs) {
+      setError('Only admins can delete log records.');
+      return;
+    }
     if (!window.confirm('Delete this log entry?')) return;
     try {
       await axios.delete(`/api/logs/${id}`);
       fetchLogs();
-    } catch {
-      alert('Failed to delete log.');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to delete log.');
     }
   };
 
@@ -407,7 +452,10 @@ export default function Logs() {
                 </label>
                 <select
                   value={systemType}
-                  onChange={(e) => setSystemType(e.target.value)}
+                  onChange={(e) => {
+                    setSystemType(e.target.value);
+                    setPage(0);
+                  }}
                   className="w-full px-3 py-2 rounded-lg glass-input text-xs bg-slate-900 text-white cursor-pointer"
                 >
                   <option value="">All Systems</option>
@@ -431,7 +479,10 @@ export default function Logs() {
                 </label>
                 <select
                   value={isAnomaly}
-                  onChange={(e) => setIsAnomaly(e.target.value)}
+                  onChange={(e) => {
+                    setIsAnomaly(e.target.value);
+                    setPage(0);
+                  }}
                   className="w-full px-3 py-2 rounded-lg glass-input text-xs bg-slate-900 text-white cursor-pointer"
                 >
                   <option value="">All Logs</option>
@@ -539,7 +590,7 @@ export default function Logs() {
           <div className="flex items-center gap-2">
             <span className="text-xs font-mono font-semibold text-white">
               Ingested Security Logs ({displayedLogs.length}
-              {displayedLogs.length !== logs.length && ` / ${logs.length}`})
+              {displayedLogs.length !== logs.length && ` / ${logs.length}`} shown, {totalLogs} total)
             </span>
             {severity && (
               <span className="sc-badge border-sky-500/20 bg-sky-500/10 text-sky-300">
@@ -548,12 +599,19 @@ export default function Logs() {
             )}
           </div>
           <button
-            onClick={fetchLogs}
+            onClick={() => fetchLogs()}
             className="text-[10px] font-mono bg-slate-800 hover:bg-slate-700 text-gray-300 px-3 py-1.5 rounded border border-dark-border transition cursor-pointer"
           >
             Refresh Logs
           </button>
         </div>
+
+        {error ? (
+          <div className="mx-4 mt-4 flex items-center gap-2 rounded-xl border border-red-500/25 bg-red-500/10 p-3 text-xs text-red-300">
+            <AlertTriangle className="h-4 w-4 shrink-0" />
+            <span>{error}</span>
+          </div>
+        ) : null}
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-24">
@@ -580,7 +638,7 @@ export default function Logs() {
                   <th className="py-4 px-6">AI Status</th>
                   <th className="py-4 px-6">Risk Score</th>
                   <th className="py-4 px-6">Raw Log Payload</th>
-                  <th className="py-4 px-6 text-right">Delete</th>
+                  {canDeleteLogs && <th className="py-4 px-6 text-right">Delete</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-dark-border/40 text-xs font-mono">
@@ -631,18 +689,60 @@ export default function Logs() {
                       </span>
                     </td>
                     <td className="py-4 px-6 text-gray-400 max-w-xs truncate">{item.rawMessage}</td>
-                    <td className="py-4 px-6 text-right" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        onClick={(e) => handleDeleteLog(item.id, e)}
-                        className="p-1.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded hover:bg-red-500/25 transition cursor-pointer"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </td>
+                    {canDeleteLogs && (
+                      <td className="py-4 px-6 text-right" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={(e) => handleDeleteLog(item.id, e)}
+                          className="p-1.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded hover:bg-red-500/25 transition cursor-pointer"
+                          aria-label="Delete log"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
             </table>
+            <div className="flex flex-col gap-3 border-t border-dark-border bg-slate-900/35 px-4 py-3 text-xs font-mono text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2">
+                <span>Rows</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setPage(0);
+                  }}
+                  className="rounded-lg border border-dark-border bg-slate-900 px-2 py-1 text-slate-200"
+                >
+                  {[10, 25, 50, 100].map((size) => (
+                    <option key={size} value={size}>{size}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setPage((current) => Math.max(current - 1, 0))}
+                  disabled={page === 0}
+                  className="rounded-lg border border-dark-border bg-slate-800 px-3 py-1.5 text-slate-200 transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Prev
+                </button>
+                <span>
+                  Page {totalPages === 0 ? 0 : page + 1} of {totalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPage((current) => Math.min(current + 1, Math.max(totalPages - 1, 0)))}
+                  disabled={totalPages === 0 || page >= totalPages - 1}
+                  className="rounded-lg border border-dark-border bg-slate-800 px-3 py-1.5 text-slate-200 transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
