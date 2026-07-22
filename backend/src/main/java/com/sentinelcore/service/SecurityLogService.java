@@ -9,7 +9,9 @@ import com.sentinelcore.repository.AssetRepository;
 import com.sentinelcore.repository.SecurityLogRepository;
 import com.sentinelcore.repository.ThreatIntelRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -51,7 +53,10 @@ public class SecurityLogService {
     @Autowired
     private AuditLogService auditLogService;
 
-    public List<SecurityLog> getLogs(String search, String systemType, Boolean isAnomaly, String startDate, String endDate) {
+    @Autowired
+    private AlertService alertService;
+
+    public Page<SecurityLog> getLogs(String search, String systemType, Boolean isAnomaly, String startDate, String endDate, Pageable pageable) {
         Query query = new Query();
         List<Criteria> criteria = new ArrayList<>();
 
@@ -76,8 +81,10 @@ public class SecurityLogService {
             query.addCriteria(new Criteria().andOperator(criteria.toArray(new Criteria[0])));
         }
 
-        query.with(Sort.by(Sort.Direction.DESC, "timestamp"));
-        return mongoTemplate.find(query, SecurityLog.class);
+        long total = mongoTemplate.count(query, SecurityLog.class);
+        query.with(pageable);
+        List<SecurityLog> logs = mongoTemplate.find(query, SecurityLog.class);
+        return new PageImpl<>(logs, pageable, total);
     }
 
     public int uploadLogs(MultipartFile file, String systemType, String currentUserEmail) {
@@ -101,6 +108,10 @@ public class SecurityLogService {
         }
 
         securityLogRepository.saveAll(logs);
+        
+        // Trigger Alert Engine
+        alertService.processLogs(logs);
+        
         auditLogService.log(null, currentUserEmail, "LOGS_UPLOADED", "LOG_MANAGEMENT",
                 "Uploaded " + logs.size() + " " + systemType + " log records");
         return logs.size();
@@ -127,9 +138,25 @@ public class SecurityLogService {
         List<ThreatIntel> iocs = threatIntelRepository.findAll();
         boolean iocHit = iocs.stream()
                 .anyMatch(ioc -> StringUtils.hasText(ioc.getValue()) && rawMessage.toLowerCase().contains(ioc.getValue().toLowerCase()));
+        
+        List<String> sqlInjectionKeywords = List.of("union select", "' or '1'='1", "select * from", "drop table", "--;");
+        boolean sqlInjection = containsAny(rawMessage.toLowerCase(), sqlInjectionKeywords);
+        
+        List<String> privEscalationKeywords = List.of("sudo failed", "root access denied");
+        boolean privEscalation = containsAny(rawMessage.toLowerCase(), privEscalationKeywords);
+        
+        boolean largeDataTransfer = bytes != null && bytes > 1_000_000_000L;
+        
         boolean keywordHit = containsAny(rawMessage.toLowerCase(), List.of("failed", "denied", "malware", "blocked", "exploit", "bruteforce", "unauthorized"));
-        boolean anomaly = iocHit || keywordHit;
-        double riskScore = iocHit ? 0.95 : keywordHit ? 0.72 : asset.map(this::assetRiskScore).orElse(0.18);
+        
+        boolean anomaly = iocHit || keywordHit || sqlInjection || privEscalation || largeDataTransfer;
+        
+        double riskScore = iocHit ? 0.95 : 
+                           sqlInjection ? 0.92 :
+                           privEscalation ? 0.90 :
+                           largeDataTransfer ? 0.85 :
+                           keywordHit ? 0.72 : asset.map(this::assetRiskScore).orElse(0.18);
+        
         double confidenceScore = anomaly ? 0.88 : 0.61;
 
         return SecurityLog.builder()

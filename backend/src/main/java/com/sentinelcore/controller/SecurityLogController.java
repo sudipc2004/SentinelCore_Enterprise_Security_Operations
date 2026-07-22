@@ -3,6 +3,9 @@ package com.sentinelcore.controller;
 import com.sentinelcore.security.UserPrincipal;
 import com.sentinelcore.service.SecurityLogService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -23,8 +26,14 @@ public class SecurityLogController {
             @RequestParam(required = false) String systemType,
             @RequestParam(required = false) Boolean isAnomaly,
             @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate) {
-        return ResponseEntity.ok(securityLogService.getLogs(search, systemType, isAnomaly, startDate, endDate));
+            @RequestParam(required = false) String endDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "25") int size,
+            @RequestParam(defaultValue = "timestamp") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction) {
+        Sort sort = direction.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        return ResponseEntity.ok(securityLogService.getLogs(search, systemType, isAnomaly, startDate, endDate, pageable));
     }
 
     @PostMapping("/upload")

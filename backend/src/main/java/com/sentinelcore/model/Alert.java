@@ -8,39 +8,34 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "incidents")
-public class Incident {
+@Document(collection = "alerts")
+public class Alert {
     @Id
     private String id;
-
+    
     private String title;
-
     private String description;
-
-    private String priority;
-
+    
+    // CRITICAL, HIGH, MEDIUM, LOW
+    private String severity;
+    
+    // NEW, INVESTIGATING, RESOLVED, FALSE_POSITIVE
     private String status;
-
-    private String category;
-
-    private String source;
-
-    private String assignedTo;
-
-    private String assignedTeam;
-
-    private String alertId;
-
-    private LocalDateTime dueAt;
-
-    private LocalDateTime resolvedAt;
-
+    
+    private String sourceIp;
+    private String relatedAssetId;
+    
+    private List<String> sourceLogIds;
+    
+    private String incidentId;
+    
+    private LocalDateTime timestamp;
     private LocalDateTime createdAt;
-
     private LocalDateTime updatedAt;
 }

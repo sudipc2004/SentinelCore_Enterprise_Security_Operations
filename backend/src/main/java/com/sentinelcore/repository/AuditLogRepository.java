@@ -9,4 +9,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface AuditLogRepository extends MongoRepository<AuditLog, String> {
     Page<AuditLog> findByUserId(String userId, Pageable pageable);
+    
+    long countByUserEmailAndActionAndTimestampAfter(String userEmail, String action, java.time.LocalDateTime timestamp);
+    
+    java.util.List<AuditLog> findByUserEmailAndActionAndTimestampAfter(String userEmail, String action, java.time.LocalDateTime timestamp);
 }

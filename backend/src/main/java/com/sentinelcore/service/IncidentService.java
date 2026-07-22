@@ -7,15 +7,18 @@ import com.sentinelcore.dto.UserResponse;
 import com.sentinelcore.exception.BadRequestException;
 import com.sentinelcore.exception.ForbiddenException;
 import com.sentinelcore.exception.ResourceNotFoundException;
+import com.sentinelcore.model.Alert;
 import com.sentinelcore.model.Incident;
 import com.sentinelcore.model.Role;
 import com.sentinelcore.model.Team;
 import com.sentinelcore.model.User;
+import com.sentinelcore.repository.AlertRepository;
 import com.sentinelcore.repository.IncidentRepository;
 import com.sentinelcore.repository.TeamRepository;
 import com.sentinelcore.repository.UserRepository;
 import com.sentinelcore.security.UserPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -39,6 +42,9 @@ public class IncidentService {
 
     @Autowired
     private IncidentRepository incidentRepository;
+
+    @Autowired
+    private AlertRepository alertRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -115,6 +121,42 @@ public class IncidentService {
         auditLogService.log(null, currentUserEmail, "INCIDENT_CREATED", "INCIDENT",
                 "Created incident: " + savedIncident.getTitle());
 
+        return mapToIncidentResponse(savedIncident);
+    }
+
+    public IncidentResponse createIncidentFromAlert(String alertId, String currentUserEmail) {
+        Alert alert = alertRepository.findById(alertId)
+                .orElseThrow(() -> new ResourceNotFoundException("Alert not found with id: " + alertId));
+        
+        if (StringUtils.hasText(alert.getIncidentId())) {
+            throw new BadRequestException("An incident is already linked to this alert.");
+        }
+        
+        String priority = "P3";
+        if ("CRITICAL".equals(alert.getSeverity())) priority = "P1";
+        else if ("HIGH".equals(alert.getSeverity())) priority = "P2";
+        else if ("LOW".equals(alert.getSeverity())) priority = "P4";
+        
+        Incident incident = Incident.builder()
+                .title("Incident from Alert: " + alert.getTitle())
+                .description(alert.getDescription())
+                .priority(priority)
+                .status("OPEN")
+                .category("SECURITY_ALERT")
+                .source("ALERT_ENGINE")
+                .alertId(alert.getId())
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+                
+        Incident savedIncident = incidentRepository.save(incident);
+        
+        alert.setIncidentId(savedIncident.getId());
+        alertRepository.save(alert);
+        
+        auditLogService.log(null, currentUserEmail, "INCIDENT_CREATED", "INCIDENT",
+                "Created incident: " + savedIncident.getTitle() + " from alert: " + alertId);
+                
         return mapToIncidentResponse(savedIncident);
     }
 
