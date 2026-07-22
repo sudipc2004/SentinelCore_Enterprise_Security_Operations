@@ -16,20 +16,52 @@ import {
   ChevronDown,
 } from 'lucide-react';
 
-// ─── Sort options ────────────────────────────────────────────────────────────
+// ─── Risk score helpers (Module 15) ────────────────────────────────────────────
+// Deterministic mock — replace with asset.riskScore when backend adds the field
+function getAssetRiskScore(asset) {
+  const base = { CRITICAL: 72, HIGH: 54, MEDIUM: 36, LOW: 18 }[asset.criticality] ?? 30;
+  const idHash = (asset.id || '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 20;
+  const offlinePenalty = asset.status === 'OFFLINE' ? 10 : 0;
+  return Math.min(100, base + idHash + offlinePenalty);
+}
+
+function RiskBadge({ score }) {
+  const cfg =
+    score >= 80 ? { cls: 'border-red-500/25 bg-red-500/15 text-red-300' }
+    : score >= 60 ? { cls: 'border-orange-500/25 bg-orange-500/15 text-orange-300' }
+    : score >= 40 ? { cls: 'border-amber-500/25 bg-amber-500/15 text-amber-300' }
+    : { cls: 'border-emerald-500/25 bg-emerald-500/15 text-emerald-300' };
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[9px] font-bold font-mono tracking-[0.14em] ${cfg.cls}`}>
+      ⬡ {score} RISK
+    </span>
+  );
+}
+
+// ─── Sort options ─────────────────────────────────────────────────────────────
 const SORT_OPTIONS = [
-  { label: 'Name (A–Z)', key: 'name', dir: 'asc' },
-  { label: 'Name (Z–A)', key: 'name', dir: 'desc' },
-  { label: 'Criticality ↑', key: 'criticality', dir: 'asc' },
+  { label: 'Name (A–Z)',    key: 'name',       dir: 'asc'  },
+  { label: 'Name (Z–A)',    key: 'name',       dir: 'desc' },
+  { label: 'Criticality ↑', key: 'criticality', dir: 'asc'  },
   { label: 'Criticality ↓', key: 'criticality', dir: 'desc' },
-  { label: 'Last Seen ↑', key: 'lastSeen', dir: 'asc' },
-  { label: 'Last Seen ↓', key: 'lastSeen', dir: 'desc' },
+  { label: 'Last Seen ↑',  key: 'lastSeen',   dir: 'asc'  },
+  { label: 'Last Seen ↓',  key: 'lastSeen',   dir: 'desc' },
+  { label: 'Risk Score ↑', key: 'riskScore',  dir: 'asc'  },
+  { label: 'Risk Score ↓', key: 'riskScore',  dir: 'desc' },
 ];
 
 const CRITICALITY_ORDER = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
 
 const TYPE_FILTERS = ['ALL', 'SERVER', 'FIREWALL', 'DATABASE', 'ROUTER', 'ENDPOINT', 'APPLICATION', 'CLOUD_SERVER'];
 const STATUS_FILTERS = ['ALL', 'ONLINE', 'OFFLINE'];
+
+const RISK_FILTERS = [
+  { val: 'ALL',      label: 'All Risk',        inactiveCls: 'border-white/8 text-slate-500'        },
+  { val: 'CRITICAL', label: 'Critical ≥80',    inactiveCls: 'border-red-500/30 text-red-400'       },
+  { val: 'HIGH',     label: 'High ≥60',        inactiveCls: 'border-orange-500/30 text-orange-400' },
+  { val: 'MEDIUM',   label: 'Medium ≥40',      inactiveCls: 'border-amber-500/30 text-amber-400'   },
+  { val: 'LOW',      label: 'Low <40',         inactiveCls: 'border-emerald-500/30 text-emerald-400'},
+];
 
 export default function Assets() {
   const [assets, setAssets] = useState([]);
@@ -63,6 +95,7 @@ export default function Assets() {
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [typeFilter, setTypeFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [riskFilter, setRiskFilter] = useState('ALL'); // Module 15
 
   // ─── Fetch ─────────────────────────────────────────────────────────────
   const fetchAssets = async () => {
@@ -102,13 +135,29 @@ export default function Assets() {
     if (typeFilter !== 'ALL') list = list.filter((a) => a.type === typeFilter);
     // Filter by status
     if (statusFilter !== 'ALL') list = list.filter((a) => a.status === statusFilter);
+    // Filter by risk score (Module 15)
+    if (riskFilter !== 'ALL') {
+      list = list.filter((a) => {
+        const rs = getAssetRiskScore(a);
+        if (riskFilter === 'CRITICAL') return rs >= 80;
+        if (riskFilter === 'HIGH')     return rs >= 60 && rs < 80;
+        if (riskFilter === 'MEDIUM')   return rs >= 40 && rs < 60;
+        if (riskFilter === 'LOW')      return rs < 40;
+        return true;
+      });
+    }
 
     // Sort
     list.sort((a, b) => {
       const { key, dir } = sortOption;
+      // Risk score sort (Module 15)
+      if (key === 'riskScore') {
+        const rA = getAssetRiskScore(a);
+        const rB = getAssetRiskScore(b);
+        return dir === 'asc' ? rA - rB : rB - rA;
+      }
       let valA = a[key];
       let valB = b[key];
-
       if (key === 'criticality') {
         valA = CRITICALITY_ORDER[valA] ?? 99;
         valB = CRITICALITY_ORDER[valB] ?? 99;
@@ -119,14 +168,13 @@ export default function Assets() {
         valA = String(valA ?? '').toLowerCase();
         valB = String(valB ?? '').toLowerCase();
       }
-
       if (valA < valB) return dir === 'asc' ? -1 : 1;
       if (valA > valB) return dir === 'asc' ? 1 : -1;
       return 0;
     });
 
     return list;
-  }, [assets, typeFilter, statusFilter, sortOption]);
+  }, [assets, typeFilter, statusFilter, sortOption, riskFilter]);
 
   // ─── Add asset ─────────────────────────────────────────────────────────
   const handleAddSubmit = async (e) => {
@@ -139,14 +187,8 @@ export default function Assets() {
     try {
       await axios.post('/api/assets', formData);
       setFormData({
-        name: '',
-        type: 'SERVER',
-        ipAddress: '',
-        macAddress: '',
-        os: 'Linux (Ubuntu 22.04)',
-        criticality: 'CRITICAL',
-        status: 'ONLINE',
-        ownerTeamId: '',
+        name: '', type: 'SERVER', ipAddress: '', macAddress: '',
+        os: 'Linux (Ubuntu 22.04)', criticality: 'CRITICAL', status: 'ONLINE', ownerTeamId: '',
       });
       setShowAddForm(false);
       fetchAssets();
@@ -208,10 +250,10 @@ export default function Assets() {
   // ─── Icon helper ───────────────────────────────────────────────────────
   const getAssetIcon = (type) => {
     switch (type) {
-      case 'SERVER':      return <Server className="w-6 h-6 text-primary" />;
-      case 'FIREWALL':    return <ShieldAlert className="w-6 h-6 text-red-400" />;
-      case 'DATABASE':    return <HardDrive className="w-6 h-6 text-indigo-400" />;
-      default:            return <Monitor className="w-6 h-6 text-sky-400" />;
+      case 'SERVER':   return <Server className="w-6 h-6 text-primary" />;
+      case 'FIREWALL': return <ShieldAlert className="w-6 h-6 text-red-400" />;
+      case 'DATABASE': return <HardDrive className="w-6 h-6 text-indigo-400" />;
+      default:         return <Monitor className="w-6 h-6 text-sky-400" />;
     }
   };
 
@@ -252,27 +294,20 @@ export default function Assets() {
               <Upload className="w-4 h-4 text-primary" />
               Bulk CSV Import
             </h2>
-            <button
-              onClick={() => setShowCsvPanel(false)}
-              className="text-gray-400 hover:text-white transition cursor-pointer"
-            >
+            <button onClick={() => setShowCsvPanel(false)} className="text-gray-400 hover:text-white transition cursor-pointer">
               <X className="w-4 h-4" />
             </button>
           </div>
-
           {csvError && (
             <div className="mb-3 p-2.5 bg-red-500/10 border border-red-500/25 text-red-400 rounded-lg text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{csvError}</span>
+              <AlertCircle className="w-4 h-4 shrink-0" /><span>{csvError}</span>
             </div>
           )}
           {csvSuccess && (
             <div className="mb-3 p-2.5 bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 rounded-lg text-xs flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 shrink-0" />
-              <span>{csvSuccess}</span>
+              <CheckCircle2 className="w-4 h-4 shrink-0" /><span>{csvSuccess}</span>
             </div>
           )}
-
           <form onSubmit={handleCsvUpload} className="flex flex-wrap items-end gap-4">
             <div className="flex-1 min-w-[220px]">
               <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-2">
@@ -292,15 +327,9 @@ export default function Assets() {
               className="flex items-center gap-2 bg-primary text-black font-semibold text-xs py-2.5 px-5 rounded-lg hover:bg-primary-hover transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
               {csvUploading ? (
-                <>
-                  <div className="w-3.5 h-3.5 border-2 border-black/25 border-t-black rounded-full animate-spin" />
-                  Importing...
-                </>
+                <><div className="w-3.5 h-3.5 border-2 border-black/25 border-t-black rounded-full animate-spin" />Importing...</>
               ) : (
-                <>
-                  <Upload className="w-3.5 h-3.5" />
-                  Import Assets
-                </>
+                <><Upload className="w-3.5 h-3.5" />Import Assets</>
               )}
             </button>
           </form>
@@ -308,77 +337,95 @@ export default function Assets() {
       )}
 
       {/* Sort & Filter toolbar */}
-      <div className="flex flex-wrap items-center gap-3">
-        {/* Sort dropdown */}
-        <div className="relative">
-          <button
-            onClick={() => setShowSortMenu((v) => !v)}
-            className="flex items-center gap-2 rounded-lg border border-dark-border bg-slate-800 px-3 py-2 text-xs font-mono text-gray-300 hover:bg-slate-700 hover:text-white transition cursor-pointer"
-          >
-            <ArrowUpDown className="w-3.5 h-3.5" />
-            {sortOption.label}
-            <ChevronDown className="w-3 h-3" />
-          </button>
-          {showSortMenu && (
-            <div className="absolute left-0 top-full z-20 mt-1 w-48 glass-card border border-dark-border py-1 shadow-xl">
-              {SORT_OPTIONS.map((opt) => (
-                <button
-                  key={opt.label}
-                  onClick={() => { setSortOption(opt); setShowSortMenu(false); }}
-                  className={`w-full px-4 py-2 text-left text-xs font-mono hover:bg-white/5 transition cursor-pointer ${
-                    sortOption.label === opt.label ? 'text-sky-300' : 'text-gray-300'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          )}
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Sort dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setShowSortMenu((v) => !v)}
+              className="flex items-center gap-2 rounded-lg border border-dark-border bg-slate-800 px-3 py-2 text-xs font-mono text-gray-300 hover:bg-slate-700 hover:text-white transition cursor-pointer"
+            >
+              <ArrowUpDown className="w-3.5 h-3.5" />
+              {sortOption.label}
+              <ChevronDown className="w-3 h-3" />
+            </button>
+            {showSortMenu && (
+              <div className="absolute left-0 top-full z-20 mt-1 w-48 glass-card border border-dark-border py-1 shadow-xl">
+                {SORT_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.label}
+                    onClick={() => { setSortOption(opt); setShowSortMenu(false); }}
+                    className={`w-full px-4 py-2 text-left text-xs font-mono hover:bg-white/5 transition cursor-pointer ${sortOption.label === opt.label ? 'text-sky-300' : 'text-gray-300'}`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Type filter chips */}
+          <div className="flex items-center gap-1 flex-wrap">
+            <Filter className="w-3.5 h-3.5 text-gray-500" />
+            {TYPE_FILTERS.map((t) => (
+              <button
+                key={t}
+                onClick={() => setTypeFilter(t)}
+                className={`rounded-full border px-2.5 py-1 text-[10px] font-bold font-mono uppercase tracking-wider transition cursor-pointer ${
+                  typeFilter === t
+                    ? 'border-sky-500/40 bg-sky-500/15 text-sky-300'
+                    : 'border-dark-border bg-white/3 text-gray-500 hover:border-white/15 hover:text-gray-300'
+                }`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+
+          {/* Status filter chips */}
+          <div className="flex items-center gap-1">
+            {STATUS_FILTERS.map((s) => (
+              <button
+                key={s}
+                onClick={() => setStatusFilter(s)}
+                className={`rounded-full border px-2.5 py-1 text-[10px] font-bold font-mono uppercase tracking-wider transition cursor-pointer ${
+                  statusFilter === s
+                    ? s === 'ONLINE'
+                      ? 'border-emerald-500/40 bg-emerald-500/15 text-emerald-300'
+                      : s === 'OFFLINE'
+                      ? 'border-red-500/40 bg-red-500/15 text-red-300'
+                      : 'border-blue-500/40 bg-blue-500/15 text-blue-300'
+                    : 'border-dark-border bg-white/3 text-gray-500 hover:border-white/15 hover:text-gray-300'
+                }`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+
+          {/* Active results count */}
+          <span className="ml-auto text-xs font-mono text-gray-500">
+            {displayedAssets.length} / {assets.length} assets
+          </span>
         </div>
 
-        {/* Type filter chips */}
+        {/* Risk filter chips — Module 15 */}
         <div className="flex items-center gap-1 flex-wrap">
-          <Filter className="w-3.5 h-3.5 text-gray-500" />
-          {TYPE_FILTERS.map((t) => (
+          <span className="text-[10px] font-mono text-gray-600 uppercase tracking-wider mr-1">Risk:</span>
+          {RISK_FILTERS.map(({ val, label, inactiveCls }) => (
             <button
-              key={t}
-              onClick={() => setTypeFilter(t)}
-              className={`rounded-full border px-2.5 py-1 text-[10px] font-bold font-mono uppercase tracking-wider transition cursor-pointer ${
-                typeFilter === t
+              key={val}
+              onClick={() => setRiskFilter(val)}
+              className={`rounded-full border px-2.5 py-1 text-[10px] font-bold font-mono tracking-wider transition cursor-pointer ${
+                riskFilter === val
                   ? 'border-sky-500/40 bg-sky-500/15 text-sky-300'
-                  : 'border-dark-border bg-white/3 text-gray-500 hover:border-white/15 hover:text-gray-300'
+                  : `${inactiveCls} bg-white/3 hover:border-white/15`
               }`}
             >
-              {t}
+              {label}
             </button>
           ))}
         </div>
-
-        {/* Status filter chips */}
-        <div className="flex items-center gap-1">
-          {STATUS_FILTERS.map((s) => (
-            <button
-              key={s}
-              onClick={() => setStatusFilter(s)}
-              className={`rounded-full border px-2.5 py-1 text-[10px] font-bold font-mono uppercase tracking-wider transition cursor-pointer ${
-                statusFilter === s
-                  ? s === 'ONLINE'
-                    ? 'border-emerald-500/40 bg-emerald-500/15 text-emerald-300'
-                    : s === 'OFFLINE'
-                    ? 'border-red-500/40 bg-red-500/15 text-red-300'
-                    : 'border-blue-500/40 bg-blue-500/15 text-blue-300'
-                  : 'border-dark-border bg-white/3 text-gray-500 hover:border-white/15 hover:text-gray-300'
-              }`}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-
-        {/* Active results count */}
-        <span className="ml-auto text-xs font-mono text-gray-500">
-          {displayedAssets.length} / {assets.length} assets
-        </span>
       </div>
 
       {/* Asset card grid */}
@@ -413,6 +460,7 @@ export default function Assets() {
                     {getAssetIcon(item.type)}
                   </div>
                   <div className="flex flex-col items-end space-y-1.5">
+                    {/* Criticality badge */}
                     <span
                       className={`inline-block px-2.5 py-0.5 rounded text-[9px] font-bold font-mono border ${
                         item.criticality === 'CRITICAL'
@@ -424,6 +472,9 @@ export default function Assets() {
                     >
                       {item.criticality}
                     </span>
+                    {/* Risk badge — Module 15 */}
+                    <RiskBadge score={getAssetRiskScore(item)} />
+                    {/* Status toggle */}
                     <button
                       onClick={() => handleToggleStatus(item)}
                       className={`inline-flex items-center text-[10px] font-bold font-mono px-2 py-0.5 rounded-full border transition cursor-pointer ${
@@ -432,11 +483,7 @@ export default function Assets() {
                           : 'bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500/20'
                       }`}
                     >
-                      <span
-                        className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
-                          item.status === 'ONLINE' ? 'bg-emerald-400' : 'bg-red-400'
-                        }`}
-                      />
+                      <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${item.status === 'ONLINE' ? 'bg-emerald-400' : 'bg-red-400'}`} />
                       {item.status}
                     </button>
                   </div>
@@ -500,15 +547,12 @@ export default function Assets() {
             <form onSubmit={handleAddSubmit} className="space-y-4">
               {formError && (
                 <div className="p-2.5 bg-red-500/10 border border-red-500/25 text-red-400 rounded-lg text-xs flex items-center space-x-2">
-                  <AlertCircle className="w-4 h-4" />
-                  <span>{formError}</span>
+                  <AlertCircle className="w-4 h-4" /><span>{formError}</span>
                 </div>
               )}
 
               <div>
-                <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-1">
-                  Asset Name
-                </label>
+                <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-1">Asset Name</label>
                 <input
                   type="text"
                   value={formData.name}
@@ -521,9 +565,7 @@ export default function Assets() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-1">
-                    Asset Type
-                  </label>
+                  <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-1">Asset Type</label>
                   <select
                     value={formData.type}
                     onChange={(e) => setFormData({ ...formData, type: e.target.value })}
@@ -539,9 +581,7 @@ export default function Assets() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-1">
-                    Criticality
-                  </label>
+                  <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-1">Criticality</label>
                   <select
                     value={formData.criticality}
                     onChange={(e) => setFormData({ ...formData, criticality: e.target.value })}
@@ -557,9 +597,7 @@ export default function Assets() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-1">
-                    IP Address
-                  </label>
+                  <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-1">IP Address</label>
                   <input
                     type="text"
                     value={formData.ipAddress}
@@ -570,9 +608,7 @@ export default function Assets() {
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-1">
-                    MAC Address
-                  </label>
+                  <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-1">MAC Address</label>
                   <input
                     type="text"
                     value={formData.macAddress}
@@ -585,9 +621,7 @@ export default function Assets() {
               </div>
 
               <div>
-                <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-1">
-                  OS / Platform
-                </label>
+                <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-1">OS / Platform</label>
                 <input
                   type="text"
                   value={formData.os}
@@ -598,9 +632,7 @@ export default function Assets() {
               </div>
 
               <div>
-                <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-1">
-                  Owner Team
-                </label>
+                <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-1">Owner Team</label>
                 <select
                   value={formData.ownerTeamId}
                   onChange={(e) => setFormData({ ...formData, ownerTeamId: e.target.value })}

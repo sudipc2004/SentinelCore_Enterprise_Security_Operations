@@ -25,6 +25,7 @@ import {
   FileText,
   BookMarked,
   FileBarChart,
+  BookOpen,
 } from 'lucide-react';
 
 export default function ProtectedLayout({ children }) {
@@ -85,8 +86,9 @@ export default function ProtectedLayout({ children }) {
     { name: 'Users', path: '/users', icon: Users },
     { name: 'Teams', path: '/teams', icon: Network },
     { name: 'Assets', path: '/assets', icon: Server },
-    { name: 'Incidents', path: '/incidents', icon: Siren },
-    { name: 'Threat Intel', path: '/threat-intel', icon: Radar },
+    { name: 'Incidents',   path: '/incidents',  icon: Siren     },
+    { name: 'Playbooks',   path: '/playbooks',  icon: BookOpen  },
+    { name: 'Threat Intel',path: '/threat-intel',icon: Radar    },
     ...(user?.role === 'ADMIN' || user?.role === 'ANALYST'
       ? [{ name: 'Audit Logs', path: '/audit-logs', icon: ScrollText }]
       : []),

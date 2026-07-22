@@ -18,6 +18,7 @@ import Assets from './pages/Assets';
 import Logs from './pages/Logs';
 import ThreatIntel from './pages/ThreatIntel';
 import Reports from './pages/Reports';
+import Playbooks from './pages/Playbooks';
 
 function PublicRoute({ children }) {
   const { user, loading } = useAuth();
@@ -176,6 +177,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Reports />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/playbooks"
+              element={
+                <ProtectedRoute>
+                  <Playbooks />
                 </ProtectedRoute>
               }
             />

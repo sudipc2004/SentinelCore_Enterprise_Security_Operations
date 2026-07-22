@@ -74,6 +74,52 @@ const MOCK_ALERT_STATUS = [
   { status: 'Resolved', count: 31 },
 ];
 
+// ─── Risk score mock data (Module 15) ─────────────────────────────────────────
+const MOCK_RISK = {
+  orgRiskScore:        62,   // 0–100 composite
+  criticalAssetsAtRisk: 3,   // CRITICAL criticality assets with risk ≥ 70
+  avgAssetRisk:        47,   // mean across all assets
+  riskTrend:           +8,   // delta vs last 7 days (positive = getting worse)
+};
+
+// ─── Risk Gauge (SVG radial arc) ────────────────────────────────────────────
+function RiskGauge({ score }) {
+  const r = 34;
+  const circ = 2 * Math.PI * r;
+  const fill = ((score ?? 0) / 100) * circ;
+  const color =
+    score >= 80 ? '#ef4444'
+    : score >= 60 ? '#f97316'
+    : score >= 40 ? '#f59e0b'
+    : '#22c55e';
+  const label =
+    score >= 80 ? 'CRITICAL'
+    : score >= 60 ? 'HIGH'
+    : score >= 40 ? 'MEDIUM'
+    : 'LOW';
+  return (
+    <div className="flex flex-col items-center">
+      <div className="relative">
+        <svg width="88" height="88" viewBox="0 0 88 88">
+          <circle cx="44" cy="44" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="8" />
+          <circle
+            cx="44" cy="44" r={r} fill="none"
+            stroke={color} strokeWidth="8"
+            strokeLinecap="round"
+            strokeDasharray={`${fill} ${circ}`}
+            transform="rotate(-90 44 44)"
+            style={{ transition: 'stroke-dasharray 0.8s ease, stroke 0.4s ease', filter: `drop-shadow(0 0 6px ${color}80)` }}
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-xl font-extrabold text-white" style={{ color }}>{score ?? '--'}</span>
+          <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color }}>{label}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Custom tooltip ──────────────────────────────────────────────────────────
 function ChartTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
@@ -118,6 +164,8 @@ export default function Dashboard() {
   const [trendData, setTrendData] = useState(MOCK_TREND);
   const [severityData, setSeverityData] = useState(MOCK_SEVERITY);
   const [alertStatusData, setAlertStatusData] = useState(MOCK_ALERT_STATUS);
+  // Risk data (Module 15)
+  const [riskData, setRiskData] = useState(MOCK_RISK);
 
   // WebSocket live feed
   const { events: liveEvents, connected: wsConnected } = useWebSocket(
@@ -139,6 +187,13 @@ export default function Dashboard() {
         if (data.incidentTrend?.length) setTrendData(data.incidentTrend);
         if (data.severityDistribution?.length) setSeverityData(data.severityDistribution);
         if (data.alertStatusCounts?.length) setAlertStatusData(data.alertStatusCounts);
+        // Wire risk data when backend returns it
+        if (data.riskScore != null) setRiskData({
+          orgRiskScore:         data.riskScore,
+          criticalAssetsAtRisk: data.criticalAssetsAtRisk ?? MOCK_RISK.criticalAssetsAtRisk,
+          avgAssetRisk:         data.avgAssetRisk         ?? MOCK_RISK.avgAssetRisk,
+          riskTrend:            data.riskTrend            ?? MOCK_RISK.riskTrend,
+        });
       } catch {
         setError('Could not retrieve dashboard metrics.');
       } finally {
@@ -278,6 +333,79 @@ export default function Dashboard() {
           </div>
           <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-3 text-red-300">
             <ShieldAlert className="h-5 w-5" />
+          </div>
+        </div>
+      </div>
+
+      {/* ── Risk Score Section (Module 15) ───────────────────────────────── */}
+      <div className="sc-panel p-5">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <p className="sc-text-kicker">Risk Scoring Engine</p>
+            <h2 className="mt-1 text-base font-bold text-white">Org-Wide Risk Posture</h2>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="sc-badge border-amber-500/20 bg-amber-500/10 text-amber-300">Module 15</span>
+            <span className="sc-badge border-white/10 bg-white/5 text-slate-400">Live</span>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {/* Overall Risk Score */}
+          <div className="sc-card flex items-center gap-4 p-5">
+            <RiskGauge score={riskData.orgRiskScore} />
+            <div>
+              <p className="sc-text-kicker">Overall Risk</p>
+              <p className="mt-1 text-xs text-slate-400">Composite org score</p>
+              <p className="mt-2 text-[10px] font-mono text-slate-500">Vulns · Incidents · Assets</p>
+            </div>
+          </div>
+
+          {/* Critical Assets at Risk */}
+          <div className="sc-card flex items-center justify-between p-5">
+            <div>
+              <p className="sc-text-kicker">Critical at Risk</p>
+              <h3 className="mt-2 text-3xl font-extrabold text-red-400">{riskData.criticalAssetsAtRisk}</h3>
+              <p className="mt-1 text-xs text-slate-500">CRITICAL assets risk ≥ 70</p>
+            </div>
+            <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-3 text-red-300">
+              <AlertOctagon className="h-6 w-6" />
+            </div>
+          </div>
+
+          {/* Avg Asset Risk */}
+          <div className="sc-card flex items-center justify-between p-5">
+            <div>
+              <p className="sc-text-kicker">Avg Asset Risk</p>
+              <h3 className="mt-2 text-3xl font-extrabold text-amber-400">{riskData.avgAssetRisk}</h3>
+              <p className="mt-1 text-xs text-slate-500">mean score across assets</p>
+            </div>
+            <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-3 text-amber-300">
+              <BarChart2 className="h-6 w-6" />
+            </div>
+          </div>
+
+          {/* Risk Trend */}
+          <div className="sc-card flex items-center justify-between p-5">
+            <div>
+              <p className="sc-text-kicker">Risk Trend (7d)</p>
+              <h3 className={`mt-2 text-3xl font-extrabold ${
+                riskData.riskTrend > 0 ? 'text-red-400'
+                : riskData.riskTrend < 0 ? 'text-emerald-400'
+                : 'text-slate-400'
+              }`}>
+                {riskData.riskTrend > 0 ? '+' : ''}{riskData.riskTrend}
+              </h3>
+              <p className="mt-1 text-xs text-slate-500">
+                {riskData.riskTrend > 0 ? 'worsening' : riskData.riskTrend < 0 ? 'improving' : 'stable'} vs last week
+              </p>
+            </div>
+            <div className={`rounded-2xl border p-3 ${
+              riskData.riskTrend > 0 ? 'border-red-500/20 bg-red-500/10 text-red-300'
+              : riskData.riskTrend < 0 ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300'
+              : 'border-white/10 bg-white/5 text-slate-400'
+            }`}>
+              {riskData.riskTrend > 0 ? <TrendingUp className="h-6 w-6" /> : riskData.riskTrend < 0 ? <TrendingDown className="h-6 w-6" /> : <Minus className="h-6 w-6" />}
+            </div>
           </div>
         </div>
       </div>
@@ -430,11 +558,10 @@ export default function Dashboard() {
               <h2 className="mt-1 text-base font-bold text-white">Live Security Events</h2>
             </div>
             <div
-              className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-widest ${
-                wsConnected
+              className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-widest ${wsConnected
                   ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
                   : 'border-white/10 bg-white/5 text-slate-500'
-              }`}
+                }`}
             >
               <span
                 className={`h-1.5 w-1.5 rounded-full ${wsConnected ? 'animate-pulse bg-emerald-400' : 'bg-slate-600'}`}
