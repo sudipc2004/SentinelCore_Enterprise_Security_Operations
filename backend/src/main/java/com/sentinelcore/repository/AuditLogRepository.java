@@ -1,0 +1,20 @@
+package com.sentinelcore.repository;
+
+import com.sentinelcore.model.AuditLog;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface AuditLogRepository extends MongoRepository<AuditLog, String> {
+    Page<AuditLog> findByUserId(String userId, Pageable pageable);
+    
+    long countByUserEmailAndActionAndTimestampAfter(String userEmail, String action, java.time.LocalDateTime timestamp);
+
+    long countByIpAddressAndActionAndTimestampAfter(String ipAddress, String action, java.time.LocalDateTime timestamp);
+
+    long countByUserEmailAndIpAddressAndActionAndTimestampAfter(String userEmail, String ipAddress, String action, java.time.LocalDateTime timestamp);
+    
+    java.util.List<AuditLog> findByUserEmailAndActionAndTimestampAfter(String userEmail, String action, java.time.LocalDateTime timestamp);
+}
