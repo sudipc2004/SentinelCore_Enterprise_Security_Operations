@@ -41,7 +41,7 @@ export default function Login() {
     try {
       await login(email, password);
       showToast({ type: 'success', message: 'Successfully entered to SentinelCore...' });
-      navigate('/');
+      navigate('/dashboard');
     } catch (err) {
       const message = err.message || 'Login failed. Please check your credentials.';
       setError(message);
