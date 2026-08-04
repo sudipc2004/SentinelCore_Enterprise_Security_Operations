@@ -1,9 +1,10 @@
 import React from 'react';
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { ShieldAlert } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './components/Toast';
 import ProtectedLayout from './layouts/ProtectedLayout';
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Teams from './pages/Teams';
@@ -33,7 +34,7 @@ function PublicRoute({ children }) {
     );
   }
 
-  return user ? <Navigate to="/" replace /> : children;
+  return user ? <Navigate to="/dashboard" replace /> : children;
 }
 
 function ProtectedRoute({ children }) {
@@ -59,6 +60,10 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route
+              path="/"
+              element={<Landing />}
+            />
+            <Route
               path="/login"
               element={
                 <PublicRoute>
@@ -79,14 +84,6 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <Navigate to="/dashboard" replace />
                 </ProtectedRoute>
               }
             />
@@ -166,22 +163,6 @@ function App() {
               }
             />
             <Route
-              path="/reports"
-              element={
-                <ProtectedRoute>
-                  <Reports />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/playbooks"
-              element={
-                <ProtectedRoute>
-                  <Playbooks />
-                </ProtectedRoute>
-              }
-            />
-                        <Route
               path="/reports"
               element={
                 <ProtectedRoute>

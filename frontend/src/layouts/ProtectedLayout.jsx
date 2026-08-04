@@ -14,11 +14,7 @@ import {
   LayoutDashboard,
   ScrollText,
   ChevronRight,
-  Maximize2,
-  CircleUserRound,
   BadgeCheck,
-  FileWarning,
-  ShieldAlert,
   Radar,
   BellRing,
   Bug,
@@ -33,6 +29,7 @@ import {
   BellDotIcon,
   BookOpen,
   RefreshCw,
+  ChevronDown,
 } from 'lucide-react';
 
 export default function ProtectedLayout({ children }) {
@@ -47,6 +44,7 @@ export default function ProtectedLayout({ children }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Real-time WebSocket connection to /topic/notifications
@@ -240,28 +238,24 @@ export default function ProtectedLayout({ children }) {
 
         <div className="mt-4 space-y-3 border-t border-white/8 pt-4">
           {!isCollapsed && (
-            <div className="rounded-2xl border border-white/8 bg-white/5 p-4">
+            <div className="rounded-2xl border border-white/8 bg-white/5 p-3">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-500/10 text-sky-300">
-                  <CircleUserRound className="h-5 w-5" />
+                <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-sky-500/10 text-sm font-bold text-sky-300">
+                  {userInitial}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="mt-1 flex items-center gap-2 text-xs text-slate-400">
-                    <p className="truncate text-base font-semibold text-white">{user.name}</p>
-                    <BadgeCheck className="h-3.5 w-3.5 text-emerald-300" />
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="truncate text-sm font-semibold text-white">{user.name || 'SentinelCore User'}</p>
+                    <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-emerald-300" />
                   </div>
-                  <p className="text-xs text-green-500">Sentinel Core Version V3.0</p>
-                  <div className="mt-1 flex flex-wrap items-center gap-2">
-                    <span className="sc-badge border-emerald-500/20 bg-emerald-500/10 text-emerald-300">{user.role}</span>
-                    <span className="inline-flex items-center gap-1 text-xs text-slate-400">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                      Online
-                    </span>
-                  </div>
+                  <p className="mt-2 text-[11px] text-green-500">Sentinel Core Version V3.0</p>
                 </div>
               </div>
             </div>
+
           )}
+
           <button onClick={logout} className={`cursor-pointer sc-button-danger w-full px-4 py-3 text-sm font-semibold ${isCollapsed ? 'justify-center' : 'justify-start'}`}>
             <LogOut className="h-4 w-4" />
             {!isCollapsed && <span>Logout</span>}
@@ -382,25 +376,64 @@ export default function ProtectedLayout({ children }) {
                       Configure notification rules
                     </Link>
                   </div>
+
                 )}
+
               </div>
 
-              {/* Department badge */}
-              {user.department && (
-                <span className="hidden sm:inline-flex sc-badge border-white/10 bg-white/5 text-slate-300 text-[10px]">
-                  {user.department}
-                </span>
-              )}
-
-              {/* User profile */}
-              <div className="flex items-center gap-2">
-                <div className="hidden md:flex items-center gap-2 rounded-full border border-white/8 bg-white/5 px-3 py-1 text-xs text-slate-300">
-                  <Maximize2 className="h-3 w-3 text-sky-300" />
-                  <span className="max-w-[140px] truncate">{user.email}</span>
-                </div>
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-sky-400 text-xs font-bold text-white ring-1 ring-white/10">
-                  {userInitial}
-                </div>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowUserMenu((value) => !value)}
+                  className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 py-1 pl-1 pr-2 text-slate-300 transition hover:border-sky-400/30 hover:text-white"
+                  aria-label="Show user menu"
+                  aria-expanded={showUserMenu}
+                >
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-sky-400 text-xs font-bold text-white ring-1 ring-white/10">
+                    {userInitial}
+                  </span>
+                  <ChevronDown className={`h-3.5 w-3.5 transition ${showUserMenu ? 'rotate-180 text-sky-300' : ''}`} />
+                </button>
+                {showUserMenu && (
+                  <div className="absolute right-0 top-full z-40 mt-2 w-[min(92vw,19rem)] overflow-hidden rounded-2xl border border-white/10 bg-[#0b1220] shadow-2xl shadow-black/40">
+                    <div className="border-b border-white/8 p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-sky-400 text-sm font-bold text-white ring-1 ring-white/10">
+                          {userInitial}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="truncate text-sm font-semibold text-white">{user.name || 'SentinelCore User'}</p>
+                            <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-emerald-300" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-2 p-3 text-xs">
+                      <div className="flex items-center justify-between gap-3 rounded-xl border border-white/6 bg-white/3 px-3 py-2">
+                        <span className="text-slate-500">Role</span>
+                        <span className="font-semibold text-emerald-300">{user.role}</span>
+                      </div>
+                      {user.department && (
+                        <div className="flex items-center justify-between gap-3 rounded-xl border border-white/6 bg-white/3 px-3 py-2">
+                          <span className="text-slate-500">Department</span>
+                          <span className="truncate font-semibold text-slate-200">{user.department}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between gap-3 rounded-xl border border-white/6 bg-white/3 px-3 py-2">
+                        <span className="text-slate-500">Email</span>
+                        <span className="mt-1 truncate text-xs text-slate-400">{user.email}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-3 rounded-xl border border-white/6 bg-white/3 px-3 py-2">
+                        <span className="text-slate-500">Status</span>
+                        <span className="inline-flex items-center gap-1 font-semibold text-emerald-300">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                          Online
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
