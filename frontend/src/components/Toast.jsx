@@ -1,11 +1,13 @@
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
-import { AlertTriangle, CheckCircle2, Info, X } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Info, ShieldAlert, X } from 'lucide-react';
 import styles from './Toast.module.css';
 
 const ToastContext = createContext(null);
 
 const icons = {
   error: AlertTriangle,
+  critical: ShieldAlert,
+  warning: AlertTriangle,
   success: CheckCircle2,
   info: Info,
 };
@@ -27,10 +29,10 @@ export function ToastProvider({ children }) {
     setToasts((items) => items.filter((toast) => toast.id !== id));
   }, []);
 
-  const showToast = useCallback(({ message, type = 'info', duration = 4000 }) => {
+  const showToast = useCallback(({ title, message, type = 'info', duration = 5000 }) => {
     const id = crypto.randomUUID();
 
-    setToasts((items) => [...items, { id, message, type }]);
+    setToasts((items) => [...items, { id, title, message, type }]);
 
     if (duration > 0) {
       window.setTimeout(() => dismissToast(id), duration);
@@ -56,8 +58,13 @@ function Toast({ toast, onDismiss }) {
 
   return (
     <div className={`${styles.toast} ${styles[toast.type] || styles.info}`} role="status">
-      <Icon className={styles.icon} aria-hidden="true" />
-      <p className={styles.message}>{toast.message}</p>
+      <div className={styles.iconWrapper}>
+        <Icon className={styles.icon} aria-hidden="true" />
+      </div>
+      <div className={styles.body}>
+        {toast.title && <h4 className={styles.title}>{toast.title}</h4>}
+        <p className={styles.message}>{toast.message}</p>
+      </div>
       <button type="button" className={styles.close} onClick={() => onDismiss(toast.id)} aria-label="Dismiss notification">
         <X className={styles.closeIcon} aria-hidden="true" />
       </button>
