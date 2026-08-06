@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Navigate, Link, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useWebSocket } from '../hooks/useWebSocket';
+import { useToast } from '../components/Toast';
 import ChatBot from '../components/ChatBot';
 import {
   Shield,
@@ -35,6 +36,9 @@ import {
 export default function ProtectedLayout({ children }) {
   const { user, loading, logout } = useAuth();
   const location = useLocation();
+  const { showToast } = useToast();
+  const initialFetchRef = useRef(true);
+  const knownNotificationIdsRef = useRef(new Set());
   const [isCollapsed, setIsCollapsed] = useState(() => {
     if (typeof window !== 'undefined') {
       return window.innerWidth < 1024;
@@ -54,13 +58,38 @@ export default function ProtectedLayout({ children }) {
     try {
       setIsRefreshing(true);
       const response = await axios.get('/api/notifications');
-      setNotifications(Array.isArray(response.data) ? response.data : []);
+      const fetchedList = Array.isArray(response.data) ? response.data : [];
+      setNotifications(fetchedList);
+
+      if (initialFetchRef.current) {
+        // Record all existing notification IDs on first load
+        knownNotificationIdsRef.current = new Set(fetchedList.map((item) => item.id));
+        initialFetchRef.current = false;
+      } else {
+        // Trigger Toast popup for newly arrived notifications
+        fetchedList.forEach((item) => {
+          if (item.id && !knownNotificationIdsRef.current.has(item.id)) {
+            knownNotificationIdsRef.current.add(item.id);
+
+            const toastType = item.severity === 'CRITICAL' || item.severity === 'HIGH' ? 'error'
+              : item.severity === 'MEDIUM' ? 'warning'
+              : 'info';
+
+            showToast({
+              title: item.title || 'Security Notification',
+              message: item.message || 'New security event received.',
+              type: toastType,
+              duration: 6000,
+            });
+          }
+        });
+      }
     } catch (err) {
       console.error('Failed to fetch notifications', err);
     } finally {
       setIsRefreshing(false);
     }
-  }, []);
+  }, [showToast]);
 
   const handleMarkAsRead = async (id) => {
     try {
