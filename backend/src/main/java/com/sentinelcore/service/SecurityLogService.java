@@ -58,6 +58,10 @@ public class SecurityLogService {
             Pattern.compile("(?i)\\binvalid\\s+(?:password|credentials)\\b"),
             Pattern.compile("(?i)\\bwindows\\s+event\\s+4625\\b|\\bevent\\s?id[=: ]4625\\b|\\bsshd\\b.+\\bfailed\\s+password\\b")
     );
+    private static final List<Pattern> SUSPICIOUS_GEO_PATTERNS = List.of(
+            Pattern.compile("(?i)\\b(?:impossible\\s+travel|suspicious\\s+(?:geo|location|login)|unusual\\s+geographic|geo[-_]?velocity|multi[-_]?location)\\b"),
+            Pattern.compile("(?i)\\blogin\\s+from\\s+(?:mumbai|bangalore|bengaluru|delhi|singapore|tokyo|london|new york)\\b")
+    );
 
     @Autowired
     private SecurityLogRepository securityLogRepository;
@@ -133,18 +137,8 @@ public class SecurityLogService {
 
         securityLogRepository.saveAll(logs);
         
-        // Trigger Alert Engine
+        // Trigger Alert Engine (aggregates and deduplicates security rules & anomalies)
         alertService.processLogs(logs);
-        for (SecurityLog log : logs) {
-            if (log.isAnomaly()) {
-                alertService.processAuditAnomaly(
-                        "Anomalous Activity Detected: " + log.getSystemType(),
-                        "Detected threat in ingested log: " + log.getRawMessage(),
-                        log.getRiskScore() != null && log.getRiskScore() >= 0.90 ? "CRITICAL" : "HIGH",
-                        log.getIpAddress()
-                );
-            }
-        }
         
         auditLogService.log(null, currentUserEmail, "LOGS_UPLOADED", "LOG_MANAGEMENT",
                 "Uploaded " + logs.size() + " " + systemType + " log records");
@@ -200,6 +194,7 @@ public class SecurityLogService {
         boolean sqlInjection = matchesAny(rawMessage, SQL_INJECTION_PATTERNS);
         boolean ransomware = matchesAny(rawMessage, RANSOMWARE_PATTERNS);
         boolean bruteForceSignal = matchesAny(rawMessage, FAILED_LOGIN_PATTERNS);
+        boolean suspiciousGeo = matchesAny(rawMessage, SUSPICIOUS_GEO_PATTERNS);
         
         List<String> privEscalationKeywords = List.of("sudo failed", "root access denied");
         boolean privEscalation = containsAny(rawMessage.toLowerCase(), privEscalationKeywords);
@@ -209,14 +204,15 @@ public class SecurityLogService {
         List<String> threatKeywords = List.of(
                 "phishing", "malicious", "ransomware", "stealer", "c2", "darkweb", "exfil",
                 "proxy", "dropper", "webshell", "backdoor", "beacon", "harvester", "attack",
-                "exploit", "trojan", "keylogger", "botnet", "failed", "denied", "blocked", "unauthorized"
+                "exploit", "trojan", "keylogger", "botnet", "failed", "denied", "blocked", "unauthorized", "impossible travel"
         );
         boolean threatKeywordHit = containsAny(rawMessage.toLowerCase(), threatKeywords);
         
-        boolean anomaly = isExplicitIocFormat || threatKeywordHit || iocHit || sqlInjection || ransomware || bruteForceSignal || privEscalation || largeDataTransfer;
+        boolean anomaly = isExplicitIocFormat || threatKeywordHit || iocHit || sqlInjection || ransomware || bruteForceSignal || suspiciousGeo || privEscalation || largeDataTransfer;
         
         double riskScore = (isExplicitIocFormat || ransomware) ? 0.96 :
                            (iocHit || threatKeywordHit) ? 0.95 :
+                           suspiciousGeo ? 0.94 :
                            sqlInjection ? 0.92 :
                            privEscalation ? 0.90 :
                            largeDataTransfer ? 0.85 :

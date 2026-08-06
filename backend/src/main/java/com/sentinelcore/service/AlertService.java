@@ -60,6 +60,11 @@ public class AlertService {
             Pattern.compile("(?i)\\bwindows\\s+event\\s+4625\\b|\\bevent\\s?id[=: ]4625\\b|\\bsshd\\b.+\\bfailed\\s+password\\b")
     );
 
+    private static final List<Pattern> SUSPICIOUS_GEO_PATTERNS = List.of(
+            Pattern.compile("(?i)\\b(?:impossible\\s+travel|suspicious\\s+(?:geo|location|login)|unusual\\s+geographic|geo[-_]?velocity|multi[-_]?location)\\b"),
+            Pattern.compile("(?i)\\blogin\\s+from\\s+(?:mumbai|bangalore|bengaluru|delhi|singapore|tokyo|london|new york)\\b")
+    );
+
     @Autowired
     private AlertRepository alertRepository;
 
@@ -72,6 +77,10 @@ public class AlertService {
 
     @Autowired(required = false)
     private LiveEventService liveEventService;
+
+    @Lazy
+    @Autowired
+    private NotificationService notificationService;
 
     @Autowired
     private com.sentinelcore.repository.ThreatIntelRepository threatIntelRepository;
@@ -144,6 +153,9 @@ public class AlertService {
                 threatIntelRepository.save(intel);
                 auditLogService.log("system", "system@sentinelcore.local", "THREAT_INTEL_AUTO_BLOCKED", "THREAT_INTEL",
                         "Auto-blocked " + type + " [" + value + "] under Threat Intel");
+                if (notificationService != null) {
+                    notificationService.notifyUpdate();
+                }
             }
         } catch (Exception ignored) {
         }
@@ -193,6 +205,17 @@ public class AlertService {
                     "Malware",
                     "Possible Ransomware Activity Detected",
                     "Detected ransomware behavior or tooling indicators in " + log.getSystemType() + " log from " + log.getIpAddress() + ": " + rawMessage,
+                    "CRITICAL",
+                    1
+            ));
+        }
+
+        if (matchesAny(rawMessage, SUSPICIOUS_GEO_PATTERNS)) {
+            matches.add(new RuleMatch(
+                    "AUTH_SUSPICIOUS_GEO_LOGIN",
+                    "Authentication",
+                    "Suspicious Multi-Location Login / Impossible Travel Detected",
+                    "Detected geographic anomaly / impossible travel login indicator in " + log.getSystemType() + " log from " + log.getIpAddress() + ": " + rawMessage,
                     "CRITICAL",
                     1
             ));
@@ -427,6 +450,9 @@ public class AlertService {
         alertRepository.save(newAlert);
         autoBlockIocsFromLogAndAlert(null, sourceIp, title, description);
         auditLogService.log("system", "system@sentinelcore.local", "ALERT_CREATED", "ALERT_MANAGEMENT", "Alert created: " + newAlert.getTitle());
+        if (notificationService != null) {
+            notificationService.notifyUpdate();
+        }
         if (liveEventService != null) {
             liveEventService.broadcastEvent("Alert: " + newAlert.getTitle(), newAlert.getSeverity());
         }
