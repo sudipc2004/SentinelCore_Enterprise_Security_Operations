@@ -51,11 +51,20 @@ public class PlaybookController {
         return ResponseEntity.ok(Map.of("message", "Playbook deleted successfully."));
     }
 
+    @PostMapping("/{id}/run")
+    public ResponseEntity<Map<String, Object>> runPlaybook(
+            @PathVariable String id,
+            @RequestBody(required = false) Map<String, Object> inputParams,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        return ResponseEntity.ok(playbookService.runPlaybook(id, userPrincipal.getUsername(), inputParams));
+    }
+
     @PostMapping("/{id}/simulate")
     public ResponseEntity<Map<String, Object>> runSimulation(
             @PathVariable String id,
+            @RequestBody(required = false) Map<String, Object> inputParams,
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        return ResponseEntity.ok(playbookService.runSimulation(id, userPrincipal.getUsername()));
+        return ResponseEntity.ok(playbookService.runPlaybook(id, userPrincipal.getUsername(), inputParams));
     }
 
     @GetMapping("/alert-rules")
