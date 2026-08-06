@@ -25,7 +25,7 @@ public class Playbook {
     private String description;
     private String triggerType; // MANUAL, ALERT_RULE
     private String linkedAlertRuleId;
-    private String status; // ACTIVE, DRAFT, ARCHIVED
+    private String status; // ACTIVE, INACTIVE
 
     @Builder.Default
     private List<PlaybookStep> steps = new ArrayList<>();
