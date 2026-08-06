@@ -6,6 +6,7 @@ import {
   Calendar,
   Check,
   Clock,
+  Copy,
   Edit2,
   Filter,
   GripVertical,
@@ -66,6 +67,15 @@ function PriorityBadge({ priority }) {
 function IncidentCard({ incident, onDragStart, onClick, canUpdate }) {
   const column = COLUMNS.find((item) => item.id === incident.status) || COLUMNS[0];
   const isOverdue = incident.dueAt && new Date(incident.dueAt) < new Date() && !['RESOLVED', 'CLOSED'].includes(incident.status);
+  const toast = useToast();
+
+  const handleCopyId = (e) => {
+    e.stopPropagation();
+    if (incident.id) {
+      navigator.clipboard.writeText(incident.id);
+      toast?.showToast('ID Copied', `Copied Incident ID: ${incident.id}`, 'info');
+    }
+  };
 
   return (
     <div
@@ -86,9 +96,19 @@ function IncidentCard({ incident, onDragStart, onClick, canUpdate }) {
         <PriorityBadge priority={incident.priority} />
       </div>
 
-      <p className="mt-1.5 line-clamp-1 text-[10px] font-mono text-slate-500">
-        {incident.category} · {incident.source}
-      </p>
+      <div className="mt-1.5 flex items-center justify-between gap-2 text-[10px] font-mono">
+        <span className="truncate text-slate-500">
+          {incident.category} · {incident.source}
+        </span>
+        <button
+          type="button"
+          onClick={handleCopyId}
+          className="inline-flex items-center gap-1 rounded bg-sky-500/10 px-1.5 py-0.5 text-[9px] text-sky-300 border border-sky-500/20 hover:bg-sky-500/25 transition cursor-pointer"
+          title="Copy Incident ID for Tracking"
+        >
+          <Copy className="h-2.5 w-2.5" /> ID: {incident.id ? incident.id.slice(-6) : 'N/A'}
+        </button>
+      </div>
 
       <div className="mt-3 flex items-center justify-between text-[10px] font-mono text-slate-500">
         <span className="flex items-center gap-1">
@@ -172,6 +192,14 @@ function DetailDrawer({ incident, onClose, onEdit, onDelete, canUpdateIncident, 
 
   const column = COLUMNS.find((item) => item.id === incident.status) || COLUMNS[0];
   const isOverdue = incident.dueAt && new Date(incident.dueAt) < new Date() && !['RESOLVED', 'CLOSED'].includes(incident.status);
+  const toast = useToast();
+
+  const handleCopyFullId = () => {
+    if (incident.id) {
+      navigator.clipboard.writeText(incident.id);
+      toast?.showToast('ID Copied', `Copied Incident ID: ${incident.id}`, 'info');
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex">
@@ -183,7 +211,7 @@ function DetailDrawer({ incident, onClose, onEdit, onDelete, canUpdateIncident, 
         <div className="space-y-5 p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
-              <div className="mb-2 flex items-center gap-2">
+              <div className="mb-2 flex items-center gap-2 flex-wrap">
                 <PriorityBadge priority={incident.priority} />
                 <span
                   className="rounded-full border px-2 py-0.5 text-[9px] font-mono uppercase tracking-[0.2em]"
@@ -191,6 +219,13 @@ function DetailDrawer({ incident, onClose, onEdit, onDelete, canUpdateIncident, 
                 >
                   {incident.status.replace('_', ' ')}
                 </span>
+                <button
+                  type="button"
+                  onClick={handleCopyFullId}
+                  className="inline-flex items-center gap-1 rounded border border-sky-500/30 bg-sky-500/15 px-2 py-0.5 text-[10px] font-mono text-sky-200 hover:bg-sky-500/30 transition cursor-pointer"
+                >
+                  <Copy className="h-3 w-3 text-sky-300" /> ID: {incident.id}
+                </button>
               </div>
               <h2 className="text-lg font-bold leading-snug text-white">{incident.title}</h2>
             </div>
